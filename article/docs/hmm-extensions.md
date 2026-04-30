@@ -274,9 +274,9 @@ $p_{\text{stay}}, p_{\text{advance}}, p_{\text{skip}}$), а
 Learned-Miller 2012):**
 
 $$
-\mathrm{DF}_{ij} = \frac{\#\{k : x_i\le \varphi_k\le x_{i+1},\;
-                              y_j\le f(\varphi_k)\le y_{j+1}\}}
-                        {\#\{k : x_i\le \varphi_k\le x_{i+1}\}},
+\mathrm{DF}_{ij} = \frac{\bigl|\{k : x_i\le \varphi_k\le x_{i+1},\;
+                                    y_j\le f(\varphi_k)\le y_{j+1}\}\bigr|}
+                        {\bigl|\{k : x_i\le \varphi_k\le x_{i+1}\}\bigr|},
 $$
 
 где $\varphi_k$ — точки фазированной (свёрнутой по периоду) кривой,
