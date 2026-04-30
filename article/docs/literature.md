@@ -162,6 +162,53 @@ PDF:
 - Описание датасета MAESTRO, который мы используем.
 - [arXiv 1810.12247](https://arxiv.org/abs/1810.12247).
 
+### Перенос методов из астрономии: SSMM, DF, multi-view metric learning
+
+Эти три ссылки пришли из астроинформатики, но дают
+готовые кирпичики для нашего score-following — см. подробный разбор
+в [`hmm-extensions.md`](hmm-extensions.md), раздел 9.
+
+#### [19] Johnston, K. B., et al. (2020). *Variable star classification using multiview metric learning.*
+
+- Журнал: MNRAS 491, 3805–3819.
+- **Ключевая обзорная статья**: объединяет SSMM (как фичу
+  переходов), DF (как фичу формы) и LM³L-MV (multiview metric
+  learning по матричным признакам) в единый классификатор.
+- Кому в команде это важно: HMM, CNN, RL — всем.
+- DOI: [10.1093/mnras/stz3165](https://doi.org/10.1093/mnras/stz3165).
+- Открытый код на Java:
+  [github.com/kjohnston82/VariableStarAnalysis](https://github.com/kjohnston82/VariableStarAnalysis).
+- **У нас:** возможная база для второй статьи команды (см.
+  [`../ROADMAP.md`](../../ROADMAP.md), раздел про задел №2).
+
+#### [20] Johnston, K. B., & Peter, A. M. (2017). *Variable star signature classification using slotted symbolic Markov modeling.*
+
+- Журнал: New Astronomy 50, 1–11.
+- Оригинальная статья по SSMM как методу преобразования
+  нерегулярных временных рядов в матрицу переходов.
+- DOI: [10.1016/j.newast.2016.06.001](https://doi.org/10.1016/j.newast.2016.06.001).
+- **У нас:** идея data-driven замены ручной матрицы $A$ из §VI.
+
+#### [21] Sevilla-Lara, L., & Learned-Miller, E. (2012). *Distribution Fields for Tracking.*
+
+- CVPR 2012, pp. 1910–1917.
+- Оригинал концепции Distribution Fields — изначально для
+  object tracking в видео; потом перенесён в астрономию
+  Helfer et al. (2015) и Johnston et al. (2019).
+- [PDF](https://people.cs.umass.edu/~elm/papers/df-cvpr2012.pdf).
+- **У нас:** альтернативная эмиссионная модель HMM,
+  «гистограммная», которую не нужно обучать.
+
+#### [22] Bellet, A., Habrard, A., & Sebban, M. (2015). *Metric Learning.*
+
+- Synthesis Lectures on AI and ML, Vol. 9. Morgan & Claypool.
+- Базовый обзор metric learning (включая LM³L и LMNN), объясняет
+  $d(x,x') = \sqrt{(x-x')^T M (x-x')}$ и алгоритмы оптимизации $M$.
+- [PDF](https://www.morganclaypool.com/doi/10.2200/S00626ED1V01Y201501AIM030)
+  (платно, есть [arXiv 1306.6709](https://arxiv.org/abs/1306.6709) — расширенный технический отчёт).
+- **У нас:** теоретическая база для возможного использования LM³L
+  как механизма re-synchronization (вторая статья).
+
 ---
 
 ## 3. RL для музыки и общий RL-аппарат
