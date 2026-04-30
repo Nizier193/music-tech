@@ -20,7 +20,7 @@ PDF:
 ## 1. Обязательное чтение (10 статей)
 
 Каждый член команды читает свои 2–3 статьи и пишет одностраничную
-выжимку в `docs/literature-summaries/`.
+выжимку в подпапке `literature-summaries/` (рядом с этим файлом).
 
 ### 1.1. Классические работы по score-following
 
@@ -75,7 +75,7 @@ PDF:
 - **Зачем:** иерархическая HMM с явной моделью длительности — лучшая
   готовая основа для нашего duration-augmented HMM.
 - **DOI:** [10.1109/TPAMI.2009.106](https://doi.org/10.1109/TPAMI.2009.106).
-- **Связан с системой Antescofo** (см. `docs/competitors.md`).
+- **Связан с системой Antescofo** (см. [`competitors.md`](competitors.md)).
 
 #### [8] Nakamura, E., Yoshii, K., & Sagayama, S. (2015). *Real-Time Audio-to-Score Alignment of Music Performances Containing Errors and Arbitrary Repeats and Skips.*
 
@@ -226,7 +226,7 @@ PDF:
 
 ## 4. Как составлять выжимки
 
-Шаблон одностраничной выжимки в `docs/literature-summaries/NN-author-year.md`:
+Шаблон одностраничной выжимки в `literature-summaries/NN-author-year.md`:
 
 ```markdown
 # Author Year — Title

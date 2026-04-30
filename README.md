@@ -2,106 +2,117 @@
 
 **Команда мастерской MusicTech, Центральный Университет (Т-Банк), 2026**
 
-Репозиторий научной статьи на тему *real-time score following* с
-HMM, OLTW и инновационным RL-модулем для предсказания темпа.
-Цель — подача статьи на конференцию **«Центральный Телеграф»**
-(submission — **3 мая 2026**, доклад — 17 мая 2026) и в перспективе
-на **ISMIR 2026** (Abu Dhabi).
+Репозиторий научного проекта по *real-time score following*: HMM/OLTW-
+бейзлайн + инновационный RL-модуль предсказания темпа для виртуального
+оркестрового аккомпанемента. Цель — статья на конференцию
+**«Центральный Телеграф»** (submission — **3 мая 2026**, доклад —
+17 мая 2026), позже — англоязычная версия для **ISMIR 2026** (Abu Dhabi).
 
-## Структура репозитория
+---
+
+## Что где лежит
 
 ```
-musictech/
-├── paper/                    ← ИСХОДНИКИ СТАТЬИ (LaTeX, шаблон ISMIR 2026)
-│   ├── main.tex
-│   ├── sections/             ← по одному файлу на раздел
-│   ├── figures/tikz/         ← все диаграммы (только ЧБ)
-│   ├── references.bib
-│   └── README.md             ← инструкции по сборке + workflow
-│
-├── ScoreFollowing.pdf        ← методичка Никиты Н. (математический аппарат)
-├── MusicTech (1).docx        ← официальное описание проекта от Т-Банка
-├── musictech_text.txt        ← извлечённый текст из docx (для grep)
-│
-├── ismir-template-raw/       ← оригинальный ISMIR-шаблон (для справки)
-│
-├── .cursor/
-│   ├── rules/                ← правила Cursor (контекст команды + стиль)
-│   │   ├── project-context.mdc
-│   │   ├── latex-paper-style.mdc
-│   │   ├── tikz-figures.mdc
-│   │   └── bibliography.mdc
-│   └── skills/               ← скиллы Cursor (workflows)
-│       ├── write-paper-section/
-│       └── tikz-bw-figure/
-│
+music-tech/
+├── README.md              ← этот файл
+├── ROADMAP.md             ← план команды и календарь до 17 мая
 ├── .gitignore
-└── README.md                 ← этот файл
+├── ScoreFollowing.pdf     ← методичка по DTW / OLTW / HMM
+│
+├── article/               ← всё про статью
+│   ├── README.md          ← описание папки + ссылки на разделы
+│   ├── main.tex           ← главный LaTeX-файл (REVTeX 4-2)
+│   ├── main.pdf           ← собранный PDF (для просмотра прямо на GitHub)
+│   ├── references.bib     ← библиография
+│   ├── build.ps1          ← собрать PDF одной командой
+│   ├── sections/          ← 9 разделов + 3 приложения
+│   ├── figures/tikz/      ← все ч/б TikZ-диаграммы
+│   └── docs/              ← подборки для команды (литература, датасеты, …)
+│
+└── src/                   ← исследовательский код (Jupyter, скрипты)
+    └── README.md
 ```
+
+---
+
+## Быстрая навигация
+
+### Документы команды (markdown)
+
+- [Roadmap и план работы](ROADMAP.md) — этапы, дедлайны, ответственные.
+- [Содержимое папки со статьёй](article/README.md) — что там и как собирать.
+- [Литература](article/docs/literature.md) — 27 ключевых статей со
+  ссылками для скачивания.
+- [Датасеты](article/docs/datasets.md) — MAESTRO, MAPS, MSMD, ASAP,
+  Bach10, URMP, MusicNet, SMD, GiantMIDI, ATEPP + собственный
+  CU-Concerto-2026.
+- [Конкуренты и аналоги](article/docs/competitors.md) — Cadenza Live,
+  MyPianist, Antescofo, Music Plus One и другие.
+- [Стек инструментов](article/docs/tools.md) — Python-библиотеки,
+  FluidSynth, JUCE и т.д.
+- [Современные расширения HMM](article/docs/hmm-extensions.md) — HSMM,
+  CRF, Neural HMM, switching SSM, transformer alignment.
+
+### Сама статья
+
+- [Свежий PDF статьи](article/main.pdf) — открывается прямо в GitHub.
+- [LaTeX-исходники](article/) и [README по сборке](article/README.md).
+
+---
 
 ## Кто за что отвечает
 
-| Модуль                  | Раздел статьи                       | Ответственные                                  |
-|-------------------------|-------------------------------------|------------------------------------------------|
-| HMM                     | §3 Background, §7 RL, координация   | Никита Новицкий, Никита Борисов                |
-| OLTW                    | §3 Background (subsec:oltw)         | TBD                                            |
-| Realtime / входные данные | §5 Real-time Pipeline             | TBD                                            |
-| Датасеты партитур       | §4 Datasets                         | TBD                                            |
-| Выходной модуль         | §5 Real-time Pipeline (subsec:output)| TBD                                            |
-| Корнер-кейсы            | §6 (subsec:corners)                 | TBD                                            |
-| CNN для аудио           | §6 (subsec:cnn)                     | TBD                                            |
+| Модуль                       | Раздел статьи           | Ответственные                   |
+|------------------------------|-------------------------|---------------------------------|
+| HMM (математика, Forward, Viterbi) | §VI Background, Прил. А | Никита Новицкий, Никита Борисов |
+| OLTW                         | §VI Background, Прил. Б | TBD                             |
+| Real-time / входные данные   | §VIII Real-time pipeline | TBD                             |
+| Датасеты партитур            | §VII Datasets           | TBD                             |
+| Выходной модуль              | §VIII Real-time (output) | TBD                             |
+| Корнер-кейсы                 | §IX Corner cases        | TBD                             |
+| CNN для аудио                | §IX CNN                 | TBD                             |
+| RL-модуль (изюминка)         | §X RL Anticipation, Прил. В | Н. Новицкий + ML            |
 
-## План работы команды
+Полное распределение и подробный план — в [ROADMAP.md](ROADMAP.md).
 
-Полный roadmap с этапами, контрольными точками и распределением
-по модулям — в [`ROADMAP.md`](ROADMAP.md). Тематические подборки:
-
-- [`docs/literature.md`](docs/literature.md) — статьи (10
-  обязательных + 17 дополнительных) с прямыми ссылками для скачивания.
-- [`docs/datasets.md`](docs/datasets.md) — открытые датасеты
-  (MAESTRO, MAPS, MSMD, ASAP, Bach10, URMP, MusicNet, SMD,
-  GiantMIDI-Piano, ATEPP) и собственный CU-Concerto-2026.
-- [`docs/competitors.md`](docs/competitors.md) — Cadenza Live,
-  MyPianist, Antescofo, Music Plus One и другие; что и как тестировать.
-- [`docs/tools.md`](docs/tools.md) — Python-стек (librosa, music21,
-  partitura, mido, sounddevice, FluidSynth, PyTorch, gymnasium,
-  stable-baselines3) и опциональный JUCE-слой на C++.
-- [`docs/hmm-extensions.md`](docs/hmm-extensions.md) — современные
-  расширения HMM (HSMM, hierarchical HMM, CRF, Neural HMM,
-  switching SSM, Bayesian HMM, transformer alignment).
+---
 
 ## Дедлайны
 
-- **30 апр.** — статус: финальный драфт всех разделов и приложений собран.
-- **1 мая** — финальная вычитка, проверка ссылок, формул, орфографии.
-- **2 мая** — внутренний review (ментор), правки и финальная вёрстка.
-- **3 мая** — **SUBMISSION статьи** на «Центральный Телеграф».
-- **4–16 мая** — подготовка доклада, слайдов и демо-видео прототипа.
-- **17 мая** — доклад на конференции «Центральный Телеграф».
-- **Лето 2026** — англоязычная версия и подача на **ISMIR 2026**
-  (deadline — около конца июня).
+| Дата          | Событие                                                |
+|---------------|--------------------------------------------------------|
+| 30 апр. 2026  | Полный драфт всех разделов и приложений собран         |
+| 1 мая 2026    | Финальная вычитка, проверка ссылок, формул, орфографии |
+| 2 мая 2026    | Внутренний review ментора, последние правки            |
+| **3 мая 2026** | **SUBMISSION статьи на «Центральный Телеграф»**       |
+| 4–16 мая 2026 | Слайды, демо-видео прототипа, презентация              |
+| 17 мая 2026   | Доклад на конференции                                  |
+| Лето 2026     | Англоязычная версия и подача на ISMIR 2026             |
 
-## Сборка статьи
+---
 
-См. `paper/README.md`. TL;DR:
+## Сборка PDF
 
 ```powershell
-cd paper
+cd article
 .\build.ps1
 ```
 
-или загрузить `paper/` в Overleaf.
+Подробности — в [article/README.md](article/README.md). Альтернативно:
+загрузить папку `article/` в Overleaf.
 
-## Использование Cursor
+---
 
-Все правила и скиллы лежат в `.cursor/`. При работе с файлами
-автоматически подхватываются:
+## Кому первым делом что делать
 
-- `project-context.mdc` — всегда (дает контекст проекта).
-- `latex-paper-style.mdc` — при редактировании `.tex` в `paper/`.
-- `tikz-figures.mdc` — при редактировании TikZ-фигур.
-- `bibliography.mdc` — при редактировании `references.bib`.
-
-Скиллы можно вызывать явно:
-- *«Напиши/доработай раздел X»* → активируется `write-paper-section`.
-- *«Нарисуй фигуру для X»* → активируется `tikz-bw-figure`.
+1. **Прочитать** [ROADMAP.md](ROADMAP.md) (5 минут на содержание +
+   30 минут на свой раздел).
+2. Посмотреть свежий [PDF статьи](article/main.pdf) — это текущее
+   состояние.
+3. Открыть [`article/docs/literature.md`](article/docs/literature.md) и
+   взять 2–3 статьи из своей зоны ответственности.
+4. Скачать датасеты по списку в
+   [`article/docs/datasets.md`](article/docs/datasets.md).
+5. Поставить стек по [`article/docs/tools.md`](article/docs/tools.md).
+6. Зайти в свой каталог в `src/` (Jupyter / эксперименты) и в
+   `article/sections/` (свой раздел статьи) — и начать работу.
