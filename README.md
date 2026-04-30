@@ -14,23 +14,57 @@
 
 ```
 music-tech/
-├── README.md              ← этот файл
-├── ROADMAP.md             ← план команды и календарь до 17 мая
+├── README.md                ← этот файл
+├── ROADMAP.md               ← план команды и календарь до 17 мая
 ├── .gitignore
-├── ScoreFollowing.pdf     ← методичка по DTW / OLTW / HMM
+├── ScoreFollowing.pdf       ← методичка по DTW / OLTW / HMM
 │
-├── article/               ← всё про статью
-│   ├── README.md          ← описание папки + ссылки на разделы
-│   ├── main.tex           ← главный LaTeX-файл (REVTeX 4-2)
-│   ├── main.pdf           ← собранный PDF (для просмотра прямо на GitHub)
-│   ├── references.bib     ← библиография
-│   ├── build.ps1          ← собрать PDF одной командой
-│   ├── sections/          ← 9 разделов + 3 приложения
-│   ├── figures/tikz/      ← все ч/б TikZ-диаграммы
-│   └── docs/              ← подборки для команды (литература, датасеты, …)
+├── article/                 ← всё про статью
+│   ├── README.md            ← описание папки + ссылки на разделы
+│   ├── main.tex             ← главный LaTeX-файл (REVTeX 4-2)
+│   ├── main.pdf             ← собранный PDF (открывается в GitHub)
+│   ├── references.bib       ← библиография (BibTeX)
+│   ├── mainNotes.bib        ← рабочие заметки и черновые ссылки
+│   ├── build.ps1            ← сборка PDF одной командой
+│   ├── ismir.sty            ← резервный ISMIR-шаблон
+│   ├── IEEEtran.bst         ← BibTeX-стиль (для ISMIR-режима)
+│   ├── cite.sty             ← пакет цитирования
+│   ├── cc_by.{eps,pdf,png}  ← логотип лицензии (нужен ISMIR-LBD)
+│   │
+│   ├── sections/            ← все разделы статьи (12 .tex)
+│   │   ├── 01-introduction.tex
+│   │   ├── 02-related-work.tex
+│   │   ├── 03-background.tex
+│   │   ├── 04-datasets.tex
+│   │   ├── 05-realtime-pipeline.tex
+│   │   ├── 06-cnn-and-corner-cases.tex
+│   │   ├── 07-rl-anticipation.tex          ← изюминка статьи (RL)
+│   │   ├── 08-experiments.tex
+│   │   ├── 09-conclusion.tex
+│   │   ├── A-appendix-hmm.tex
+│   │   ├── B-appendix-oltw.tex
+│   │   └── C-appendix-rl.tex
+│   │
+│   ├── figures/
+│   │   ├── example.png      ← пример вставки растрового изображения
+│   │   └── tikz/            ← все ч/б TikZ-диаграммы (7 файлов)
+│   │       ├── cnn_arch.tex
+│   │       ├── demo_rubato_error.tex
+│   │       ├── demo_tempo_latency.tex
+│   │       ├── dtw_matrix.tex
+│   │       ├── hmm_states.tex
+│   │       ├── pipeline.tex
+│   │       └── rl_agent.tex
+│   │
+│   └── docs/                ← подборки для команды (.md)
+│       ├── literature.md         ← 27 ключевых статей со ссылками
+│       ├── datasets.md           ← открытые датасеты + CU-Concerto-2026
+│       ├── competitors.md        ← Cadenza Live, Antescofo и др.
+│       ├── tools.md              ← Python-стек, FluidSynth, JUCE
+│       └── hmm-extensions.md     ← современные расширения HMM
 │
-└── src/                   ← исследовательский код (Jupyter, скрипты)
-    └── README.md
+└── src/                     ← исследовательский код (Jupyter, скрипты)
+    └── README.md            ← пояснение, что сюда класть
 ```
 
 ---
