@@ -1,4 +1,4 @@
-# Build artefacts
+# Build artefacts (LaTeX)
 *.aux
 *.bbl
 *.blg
@@ -20,10 +20,15 @@
 Thumbs.db
 
 # Compiled output (keep PDF only on releases)
-src/paper/main.pdf
+article/main.pdf
 
-# Local raw template snapshot — kept once, no need to track
+# Local raw template snapshot - kept locally only
 ismir-template-raw/
 
 # Local extracted text dumps
 musictech_text.txt
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
