@@ -1,0 +1,27 @@
+% =====================================================================
+% TikZ figure: RL anticipation agent (BLACK & WHITE)
+% Compact layout: 3 boxes top, 2 boxes bottom; fits into one column.
+% Used in: sections/07-rl-anticipation.tex
+% =====================================================================
+\begin{tikzpicture}[
+    node distance = 4mm and 3mm,
+    every node/.append style={font=\scriptsize},
+    block/.style ={rectangle, draw=black, thick, rounded corners=2pt,
+                   minimum height=9mm, minimum width=20mm,
+                   align=center, font=\scriptsize},
+    arrow/.style ={-Stealth, thick}]
+
+  \node[block]                  (track)  {Базовый\\трекер};
+  \node[block, right=of track]  (state)  {Состояние\\$s_t$};
+  \node[block, right=of state]  (policy) {Политика\\$\pi_\theta$};
+
+  \node[block, below=7mm of policy] (env)    {Среда\\(рендерер)};
+  \node[block, left=of env]         (reward) {Награда\\$r_t$};
+
+  \draw[arrow] (track)  -- (state);
+  \draw[arrow] (state)  -- (policy);
+  \draw[arrow] (policy) -- node[right, font=\tiny] {$a_t$} (env);
+  \draw[arrow] (env)    -- (reward);
+  \draw[arrow] (reward.west) -| (track.south);
+
+\end{tikzpicture}

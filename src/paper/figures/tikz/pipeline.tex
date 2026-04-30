@@ -1,0 +1,32 @@
+% =====================================================================
+% TikZ figure: end-to-end real-time pipeline (BLACK & WHITE only)
+% Compact 3+3 layout to fit a single REVTeX two-column column.
+% Used in: sections/05-realtime-pipeline.tex
+% =====================================================================
+\begin{tikzpicture}[
+    node distance = 4mm and 4mm,
+    every node/.append style={font=\scriptsize},
+    block/.style ={rectangle, draw=black, thick, rounded corners=2pt,
+                   minimum height=8mm, minimum width=18mm,
+                   align=center, font=\scriptsize},
+    arrow/.style ={-Stealth, thick}]
+
+  \node[block]                 (in)    {MIDI / audio\\input};
+  \node[block, right=of in]    (clean) {Cleaning\\\& buffer};
+  \node[block, right=of clean] (hmm)   {HMM\\tracker};
+
+  \node[block, below=8mm of hmm]   (oltw) {OLTW\\fall-back};
+  \node[block, left=of oltw]       (rl)   {RL tempo\\anticip.};
+  \node[block, left=of rl]         (out)  {Orchestra\\renderer};
+
+  \draw[arrow] (in)    -- (clean);
+  \draw[arrow] (clean) -- (hmm);
+  \draw[arrow] (hmm)   -- (oltw);
+  \draw[arrow] (oltw)  -- (rl);
+  \draw[arrow] (rl)    -- (out);
+
+  \draw[arrow, dashed] (hmm.south west) to[bend right=15]
+    node[left, font=\tiny, pos=0.55]
+        {$\max\alpha_t<\theta_{\text{conf}}$} (oltw.north west);
+
+\end{tikzpicture}

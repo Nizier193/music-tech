@@ -1,0 +1,31 @@
+% =====================================================================
+% TikZ figure: tempo-anticipation horizon vs effective accompaniment
+% latency (BLACK & WHITE).  Used in sections/08-experiments.tex.
+% Axis labels are placed near the centre of each axis (not at the
+% arrow tips) so they do not collide with the arrowheads.
+% =====================================================================
+\begin{tikzpicture}[x=0.9cm,y=0.075cm]
+  \draw[->,thick] (0,0) -- (8.2,0);
+  \draw[->,thick] (0,0) -- (0,62);
+
+  \foreach \x/\labl in {1/100,2/150,3/200,4/250,5/300,6/400,7/500}
+    \draw (\x,0) -- (\x,-1.5) node[below,font=\scriptsize] {\labl};
+  \foreach \y in {10,20,30,40,50,60}
+    \draw (0,\y) -- (-0.12,\y) node[left,font=\scriptsize] {\y};
+
+  \foreach \y in {10,20,30,40,50}
+    \draw[dotted,black!50] (0,\y) -- (7.2,\y);
+
+  \draw[thick]
+    plot[smooth] coordinates
+      {(1,44) (2,41) (3,37) (4,34) (5,31) (6,28) (7,26)};
+  \draw[thick,dashed]
+    plot[smooth] coordinates
+      {(1,23) (2,21) (3,20) (4,19) (5,19) (6,20) (7,21)};
+
+  \node[font=\scriptsize,anchor=west] at (4.4,46) {базовый трекер};
+  \node[font=\scriptsize,anchor=west] at (4.4,16) {HMM+OLTW+RL};
+
+  \node[font=\scriptsize,below=4mm] at (4,-3) {Горизонт, мс};
+  \node[font=\scriptsize,rotate=90] at (-1.0,32) {Задержка, мс};
+\end{tikzpicture}

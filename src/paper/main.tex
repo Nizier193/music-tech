@@ -1,0 +1,326 @@
+% =====================================================================
+% MusicTech — Real-Time Score Following with HMM, OLTW and RL
+% Submission: Центральный Телеграф (Central University, T-Bank), 17 May 2026
+% Visual style: REVTeX 4-2 (APS Phys. Rev. E), TWO COLUMN, modeled on
+%               the example in ../пример/main.tex.
+% Maintainer:  Никита Новицкий, Никита Борисов (HMM team)
+%
+% Backups:
+%   main_aip.tex.bak    — single-column AIP-style version (Kudryashov)
+%   main_ismir.tex.bak  — compact 6-page ISMIR 2-column version
+% =====================================================================
+
+% =====================================================================
+% Class options: STRICTLY mirror пример/main.tex (Meibohm et al.).
+% Do NOT add 11pt or twoside — REVTeX defaults set the title size,
+% line spacing, body font size, column width, paragraph indent and
+% abstract layout.  Any custom geometry would diverge from the
+% reference layout requested by the user.
+% =====================================================================
+\documentclass[%
+  aps,
+  pre,
+  twocolumn,
+  superscriptaddress,
+  longbibliography,
+  nofootinbib,
+  showkeys,             % render \keywords{...} below the abstract
+  amsmath,amssymb,
+  floatfix
+]{revtex4-2}
+
+% --------------------------------------------------------------------
+% Encoding & languages — Cyrillic-aware
+% --------------------------------------------------------------------
+\usepackage[T1,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{cmap}                    % searchable Cyrillic in PDF
+
+% --------------------------------------------------------------------
+% Font setup — split text vs. math:
+%   - \usepackage{mathptmx} replaces the serif family with Times AND
+%     swaps math fonts to a Times-compatible set (slightly smaller
+%     and tighter than Computer Modern math).  This matches the
+%     visual feel of пример/main.pdf where the equations look more
+%     compact than in plain CM.
+%   - The catch: ptm has no Cyrillic bold (T2A/ptm/b/n undefined),
+%     so \textbf{...} for Russian silently loses its boldness.
+%   - Workaround: load mathptmx (so MATH becomes Times-style and
+%     smaller), then immediately revert the TEXT roman default back
+%     to Computer Modern, which has full T2A bold via cm-super.
+% Result: Cyrillic body & bold work correctly, equations look
+%         compact (Times-style mathematics).
+% --------------------------------------------------------------------
+\usepackage{mathptmx}
+\renewcommand{\rmdefault}{cmr}       % keep TEXT in Computer Modern
+
+% Make math glyphs slightly smaller than the body font.
+% Default LaTeX for 10pt body is 10/7/5 (math/script/scriptscript);
+% we drop math one notch to ≈9pt so that displayed equations have
+% the same visual weight as in пример/main.pdf.
+\DeclareMathSizes{10}{9}{6.5}{5}
+
+% --------------------------------------------------------------------
+% Math + symbols (mathptmx is loaded by REVTeX automatically)
+% --------------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsfonts,mathtools}
+
+% --------------------------------------------------------------------
+% Floats, tables, figures
+% --------------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+% Match the compact float spacing of the reference article.
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt plus 1pt minus 1pt}
+\setlength{\belowcaptionskip}{0pt}
+
+% --------------------------------------------------------------------
+% TikZ (BLACK & WHITE only — see .cursor/rules/tikz-figures.mdc)
+% --------------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,shapes.geometric,
+                automata,matrix,decorations.pathreplacing,patterns}
+\tikzset{
+  >={Latex[length=2mm,width=1.5mm]},
+  state/.style ={circle, draw=black, thick, minimum size=8mm,
+                 inner sep=0pt, font=\small},
+  obs/.style   ={rectangle, draw=black, thick, minimum size=7mm,
+                 font=\small},
+  block/.style ={rectangle, draw=black, thick, rounded corners=2pt,
+                 minimum height=8mm, align=center, font=\small},
+  arrow/.style ={-Stealth, thick},
+  faded/.style ={draw=black!40, text=black!60},
+}
+
+% --------------------------------------------------------------------
+% Hyperlinks and citation style:
+%   - same behavior as in пример/main.tex: default PDF link annotations
+%     (viewer highlights links with colored rectangles)
+%   - numeric citations in square brackets: [1], [2], ...
+% --------------------------------------------------------------------
+\usepackage{hyperref}
+\setcitestyle{numbers,square,sort&compress}
+
+% --------------------------------------------------------------------
+% Page footer: conference banner on EVERY page, page number at the
+% right.  REVTeX uses two distinct page styles ("titlepage" for the
+% first page and "plain"/empty for the rest), so we override both.
+% --------------------------------------------------------------------
+\usepackage{fancyhdr}
+\newcommand{\confbanner}{%
+  \itshape\footnotesize
+  Мультидисциплинарная молодежная конференция
+  Центрального университета \guillemotleft Научный телеграф\guillemotright}
+
+\fancypagestyle{withbanner}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\confbanner}%
+  \fancyfoot[R]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+\pagestyle{withbanner}
+
+% --------------------------------------------------------------------
+% Math shortcuts shared across sections
+% (use \providecommand to avoid clashes with mathtools / amsthm)
+% --------------------------------------------------------------------
+\providecommand{\Real}{\mathbb{R}}
+\providecommand{\Expect}{\mathbb{E}}
+\providecommand{\Prb}{\mathbb{P}}
+\DeclareMathOperator*{\argmaxop}{arg\,max}
+\DeclareMathOperator*{\argminop}{arg\,min}
+
+% --------------------------------------------------------------------
+% Cross-reference helpers (Russian, in the spirit of пример/main.tex)
+% --------------------------------------------------------------------
+\newcommand{\eqlab}[1]{\label{eq:#1}}
+\newcommand{\seclab}[1]{\label{sec:#1}}
+\newcommand{\figlab}[1]{\label{fig:#1}}
+\newcommand{\tablab}[1]{\label{tab:#1}}
+\newcommand{\Eqref}[1]{уравн.~\eqref{eq:#1}}
+\newcommand{\Eqsref}[1]{уравн.~\eqref{eq:#1}}
+\newcommand{\Figref}[1]{РИС.~\ref{fig:#1}}
+\newcommand{\Secref}[1]{разд.~\ref{sec:#1}}
+\newcommand{\Tabref}[1]{ТАБЛ.~\ref{tab:#1}}
+
+% --------------------------------------------------------------------
+% Section heading macro — CENTERED, ALL CAPS, BOLD, no number, no
+% trailing period, with TIGHT vertical spacing.
+% Project style mirrors the AIP Conf. Proc. block headings
+% ("INTRODUCTION", "MATHEMATICAL MODEL", ...).
+% REVTeX's native \section* puts ~2.0/1.0 baselineskip around the
+% heading, which looks too airy in a two-column layout.  We bypass
+% it and emit the title manually with explicitly controlled spacing.
+% --------------------------------------------------------------------
+\newcounter{musecct}
+\renewcommand{\themusecct}{\Roman{musecct}}
+\makeatletter
+\newcommand{\sect}[2]{%
+  \par\addvspace{0.35\baselineskip}%
+  \refstepcounter{musecct}%
+  \begingroup
+    \centering
+    \normalsize\bfseries
+    \MakeUppercase{#1}%
+    \par
+  \endgroup
+  \seclab{#2}%
+  \nopagebreak
+  \addvspace{0.12\baselineskip}%
+  \@afterindentfalse\@afterheading
+  \ignorespaces}
+\makeatother
+
+% --------------------------------------------------------------------
+% Caption labels — "РИС. 1." / "ТАБЛ. 1." (uppercase, normal weight).
+% REVTeX places these labels inline before the caption body without
+% any bold/italic, which is exactly what the project style requires.
+% --------------------------------------------------------------------
+\renewcommand{\thetable}{\arabic{table}}
+\addto\captionsrussian{%
+  \renewcommand{\figurename}{РИС.}%
+  \renewcommand{\tablename}{ТАБЛ.}%
+}
+
+% --------------------------------------------------------------------
+% Russian label for the \keywords{...} block (defined in aip4-2.rtx
+% as "\def\@keys@name{{\small\bfseries Keywords:} }").
+% --------------------------------------------------------------------
+\makeatletter
+\renewcommand{\@keys@name}{{\small\bfseries Ключевые слова:}\space}
+\makeatother
+
+% --------------------------------------------------------------------
+% Author list separator: REVTeX defaults to inserting " and " between
+% the two co-authors (\def\@listand{\@ifnum{\@tempcnta=\tw@}{\andname
+% \space}{}}).  Project style prefers a comma, e.g.
+%   "Н. А. Новицкий¹,∗, Н. С. Борисов²,†"
+% instead of
+%   "Н. А. Новицкий¹,∗ and Н. С. Борисов²,†".
+% --------------------------------------------------------------------
+\makeatletter
+\renewcommand{\andname}{}                 % drop "and" for 3+ authors
+\def\@listand{\@ifnum{\@tempcnta=\tw@}{,\space}{}}  % comma for 2 authors
+\makeatother
+
+% Note on the abstract: in REVTeX's twocolumn pre mode the
+% \abstractname is NOT printed automatically.  We therefore put the
+% italic prefix directly in the abstract environment, see main body.
+
+% --------------------------------------------------------------------
+% Author-name helpers borrowed from MAIK templates (sao_cmd_author.tex):
+%   \firstname{Н.~А.}~\surname{Новицкий}
+% In the original MAIK template these formatting may differ; here we
+% just print them as-is, so the syntax stays compatible if we later
+% adopt the full MAIK style.
+% --------------------------------------------------------------------
+\providecommand{\firstname}[1]{#1}
+\providecommand{\surname}[1]{#1}
+
+% NB: the abstract environment is left at the REVTeX default (it
+% spans both columns automatically). The body text stays in normal
+% font; only the "Аннотация." prefix may be emphasized manually.
+
+% =====================================================================
+% In REVTeX 4-2 the title/author/abstract block MUST live INSIDE
+% \begin{document}.  See REVTeX 4-2 Author's Guide §I.A.
+% =====================================================================
+\begin{document}
+\selectlanguage{russian}
+
+\keywords{отслеживание партитуры, скрытые марковские модели, on-line
+          time warping, аккомпанемент в реальном времени, обучение
+          с подкреплением, предсказание темпа, выравнивание MIDI,
+          виртуальный оркестр}
+
+\title{\MakeUppercase{Алгоритмы отслеживания партитуры в реальном
+       времени для виртуального оркестра: скрытые марковские модели,
+       on-line time warping и обучение с подкреплением}}
+
+\author{\firstname{Н.~А.}~\surname{Новицкий}}
+\email{n.novitskiy@edu.centraluniversity.ru}
+\affiliation{\textit{АНО Центральный Университет, бывш. НИУ ВШЭ}}
+
+\author{\firstname{Н.~С.}~\surname{Борисов}}
+\email{n.borisov@edu.centraluniversity.ru}
+\affiliation{\textit{АНО Центральный Университет}}
+
+\begin{abstract}
+\textbf{Аннотация.}\space
+Системы отслеживания партитуры в реальном времени сопоставляют живое
+исполнение с её символьной записью и лежат в основе автоматического
+аккомпанемента, переворота страниц и педагогической обратной связи.
+Классические решения либо вычисляют глобально оптимальное
+выравнивание в отложенном режиме (Dynamic Time Warping), либо
+работают каузально с ограниченным горизонтом предсказания (On-line
+Time Warping, скрытые марковские модели). В настоящей работе
+проводится единое математическое описание моделей HMM и OLTW для
+монофонического входа в формате MIDI, излагается архитектура
+конвейера обработки в реальном времени с очисткой входных данных,
+потоковым выводом и обработкой граничных случаев, а также
+предлагается модуль на основе обучения с подкреплением,
+предсказывающий изменения темпа на горизонте $200$--$500$\,мс и
+передающий результат базовому трекеру. Эксперименты на синтетическом
+датасете в стиле прелюдий Шопена и на записях, собранных в
+Центральном Университете, показывают, что предложенный модуль
+снижает задержку аккомпанемента на $X$\,\% без потери точности
+выравнивания относительно базовой схемы HMM/OLTW.
+\end{abstract}
+
+\maketitle
+\thispagestyle{withbanner}            % REVTeX resets page style on the
+                                      % title page; force our footer.
+
+% --------------------------------------------------------------------
+% Body sections.  For the layout preview only the introduction is
+% translated to Russian; the remaining sections will be re-enabled
+% by the team as they are translated and adapted to run-in headings.
+% --------------------------------------------------------------------
+\input{sections/01-introduction}
+\input{sections/02-related-work}
+\input{sections/03-background}
+\input{sections/04-datasets}
+\input{sections/05-realtime-pipeline}
+\input{sections/06-cnn-and-corner-cases}
+\input{sections/07-rl-anticipation}
+\input{sections/08-experiments}
+\input{sections/09-conclusion}
+
+\sect{Благодарности}{acknowledgments}
+%
+Авторы благодарят менторов мастерской MusicTech Центрального
+Университета и Т-Банка за постановку задачи и техническую
+поддержку, а также студентов-консерваторов, согласившихся принять
+участие в записи тестового датасета и в субъективной оценке
+аккомпанемента.
+
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+% =====================================================================
+% Appendices start on a NEW page (as in пример/main.pdf), with a
+% one-column "ПРИЛОЖЕНИЯ" banner, then individual sub-appendices in
+% the usual two-column layout.
+% =====================================================================
+\clearpage
+\onecolumngrid
+\vspace{0.7\baselineskip}
+\begingroup
+  \centering
+  \normalsize\bfseries
+  ПРИЛОЖЕНИЯ\par
+\endgroup
+\vspace{0.25\baselineskip}
+\twocolumngrid
+
+\input{sections/A-appendix-hmm}
+\input{sections/B-appendix-oltw}
+\input{sections/C-appendix-rl}
+
+\end{document}

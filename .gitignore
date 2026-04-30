@@ -1,0 +1,29 @@
+# Build artefacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+
+# Editor / OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Compiled output (keep PDF only on releases)
+src/paper/main.pdf
+
+# Local raw template snapshot — kept once, no need to track
+ismir-template-raw/
+
+# Local extracted text dumps
+musictech_text.txt

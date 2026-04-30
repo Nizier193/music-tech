@@ -1,0 +1,31 @@
+% =====================================================================
+% TikZ figure: rubato strength vs alignment error (BLACK & WHITE).
+% Used in sections/08-experiments.tex.
+% Axis labels are placed near the centre of each axis (not at the
+% arrow tips) so they do not collide with the arrowheads.
+% =====================================================================
+\begin{tikzpicture}[x=0.95cm,y=0.10cm]
+  \draw[->,thick] (0,0) -- (8.0,0);
+  \draw[->,thick] (0,0) -- (0,42);
+
+  \foreach \x/\labl in {1/2,2/4,3/6,4/8,5/10,6/12,7/14}
+    \draw (\x,0) -- (\x,-1.1) node[below,font=\scriptsize] {\labl};
+  \foreach \y in {5,10,15,20,25,30,35,40}
+    \draw (0,\y) -- (-0.11,\y) node[left,font=\scriptsize] {\y};
+
+  \foreach \y in {10,20,30}
+    \draw[dotted,black!50] (0,\y) -- (7.2,\y);
+
+  \draw[thick]
+    plot[smooth] coordinates
+      {(1,7) (2,10) (3,14) (4,19) (5,25) (6,31) (7,36)};
+  \draw[thick,dashed]
+    plot[smooth] coordinates
+      {(1,6) (2,8) (3,11) (4,15) (5,19) (6,24) (7,28)};
+
+  \node[font=\scriptsize,anchor=west] at (4.4,33) {HMM};
+  \node[font=\scriptsize,anchor=west] at (4.4,22) {HMM+OLTW+RL};
+
+  \node[font=\scriptsize,below=4mm] at (4,-3) {Сила rubato, \%};
+  \node[font=\scriptsize,rotate=90] at (-1.1,21) {Ошибка, мс};
+\end{tikzpicture}

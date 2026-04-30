@@ -1,0 +1,35 @@
+% =====================================================================
+% TikZ figure: CNN front-end architecture (BLACK & WHITE only)
+% Compact 4+4 layout to fit a single REVTeX two-column column.
+% Used in: sections/06-cnn-and-corner-cases.tex
+% =====================================================================
+\begin{tikzpicture}[
+    node distance = 3mm and 2.5mm,
+    layer/.style={rectangle, draw=black, thick,
+                  minimum height=10mm, minimum width=10mm,
+                  font=\tiny, align=center},
+    arrow/.style={-Stealth, thick}]
+
+  \node[layer]                 (in)   {Mel\\$128{\times}40$};
+  \node[layer, right=of in,
+        pattern=north east lines, pattern color=black!30]
+                               (c1)   {Conv\\$3{\times}3$\\32};
+  \node[layer, right=of c1,
+        pattern=north east lines, pattern color=black!30]
+                               (c2)   {Conv\\$3{\times}3$\\64};
+  \node[layer, right=of c2,
+        pattern=north east lines, pattern color=black!30]
+                               (c3)   {Conv\\$3{\times}3$\\128};
+
+  \node[layer, below=7mm of c3,
+        pattern=north east lines, pattern color=black!30]
+                               (c4)   {Conv\\$3{\times}3$\\256};
+  \node[layer, left=of c4]     (gap)  {GAP};
+  \node[layer, left=of gap]    (fc)   {FC\\$\to{}$128};
+  \node[layer, left=of fc]     (sm)   {Soft-\\max\\88};
+
+  \foreach \a/\b in {in/c1, c1/c2, c2/c3} \draw[arrow] (\a) -- (\b);
+  \draw[arrow] (c3) -- (c4);
+  \foreach \a/\b in {c4/gap, gap/fc, fc/sm} \draw[arrow] (\a) -- (\b);
+
+\end{tikzpicture}
