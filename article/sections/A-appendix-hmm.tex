@@ -1,79 +1,111 @@
-\sect{Приложение А. Алгоритмы Forward и Viterbi}{appendix-hmm}
+\sect{Приложение А. Алгоритмы Forward, Viterbi и Baum-Welch}{appendix-hmm}
 %
-В настоящем приложении приведены полные рекуррентные формулы и
-псевдокод классических алгоритмов Forward и Viterbi для скрытой
-марковской модели, используемой в~\Secref{background}. Для
-самостоятельности изложения здесь повторяется обозначение
-$\lambda=(A,B,\pi)$, где $A=(A_{ij})$~--- матрица переходов согласно
-\eqref{eq:transition-matrix}, $b_i(o)$~--- эмиссионная плотность,
-$\pi=(\pi_i)$~--- начальное распределение.
+В настоящем приложении приводятся канонические псевдокоды трёх
+основных алгоритмов работы со скрытыми марковскими моделями в
+нотации Рабинера~\cite{Rabiner1989}. Все обозначения соответствуют
+введённым в~\Secref{math}: $\lambda=(A,B,\pi)$~--- параметры HMM,
+$O=(o_1,\dots,o_T)$~--- последовательность наблюдений, $N$~---
+число состояний.
 
-Алгоритм Forward вычисляет полную вероятность наблюдаемой
-последовательности $O=(o_1,\dots,o_T)$ при модели $\lambda$ через
-вспомогательные величины
-$\alpha_t(i) = \Prb(o_1,\dots,o_t,\,s_t=i\mid\lambda)$. Рекуррентная
-формула имеет вид
-\begin{equation}
-\alpha_t(j) = b_j(o_t)\sum_{i=1}^{N}\alpha_{t-1}(i)\,A_{ij},
-\eqlab{forward-app}
-\end{equation}
-с инициализацией $\alpha_1(j)=\pi_j\,b_j(o_1)$. Полная вероятность
-наблюдений равна $\Prb(O\mid\lambda)=\sum_{j=1}^{N}\alpha_T(j)$. На
-практике для длинных последовательностей применяется покадровая
-нормировка $\tilde\alpha_t(j)=\alpha_t(j)\bigl/\sum_k\alpha_t(k)$,
-что устраняет численное переполнение и одновременно даёт
-апостериорную оценку $\Prb(s_t=j\mid o_1,\dots,o_t)$, используемую
-для онлайн-выдачи $\hat\varphi(t)=\argmaxop_j\tilde\alpha_t(j)$.
+\paragraph*{Forward-рекурсия.} Алгоритм решает задачу оценивания
+$\Prb(O\mid\lambda) = \sum_{i=1}^N\alpha_T(i)$ за время $O(N^2 T)$.
+Прямая рекурсия~\eqref{eq:forward-rec} в явной онлайн-форме с
+покадровой нормировкой~\cite[\S~V-A]{Rabiner1989}:
 
 \par\addvspace{2pt}
 {\centering
 \begin{minipage}{0.97\linewidth}
 \footnotesize
-\textbf{Алгоритм 1.} Forward-рекурсия для онлайн-трекера. \\[1pt]
+\textbf{Алгоритм 1.} Online Forward-рекурсия. \\[1pt]
 \rule{\linewidth}{0.4pt}\vspace{1pt}\\
-\textbf{Вход:} партитура $S=(p_1,\dots,p_N)$, матрица $A$,
-эмиссионный параметр $\sigma$. \\
-1: $\alpha\gets(1,0,\dots,0)\in\Real^N$ \\
-2: \textbf{для} каждой поступающей ноты $o$ \textbf{выполнить} \\
-3: \quad \textbf{для} $j\gets 1,\dots,N$ \textbf{выполнить} \\
-4: \quad\quad $b_j\gets\mathcal{N}(o;\,p_j,\,\sigma^2)$ \\
-5: \quad\quad $\alpha'_j\gets b_j\sum_{i=1}^{N}\alpha_i\,A_{ij}$ \\
-6: \quad \textbf{конец для} \\
-7: \quad $\alpha\gets\alpha'\bigl/\sum_k\alpha'_k$ \\
-8: \quad \textbf{выдать} $\hat\varphi\gets\argmaxop_j\alpha_j$ \\
-9: \textbf{конец для} \\
+\textbf{Вход:} $\lambda=(A,B,\pi)$; поток $o_1,o_2,\dots$ \\
+\textbf{Выход:} $\tilde\alpha_t(i) = \Prb(q_t=S_i\mid o_{1:t})$ \\
+1: $\alpha_1(i) \gets \pi_i\,b_i(o_1)$ для $i=1,\dots,N$ \\
+2: $\tilde\alpha_1 \gets \alpha_1 / \sum_k \alpha_1(k)$ \\
+3: \textbf{выдать} $\hat\varphi(1) \gets \argmaxop_i \tilde\alpha_1(i)$ \\
+4: \textbf{для} $t = 2, 3, \dots$ \textbf{выполнить} \\
+5: \quad \textbf{для} $j = 1, \dots, N$ \textbf{выполнить} \\
+6: \quad\quad $\alpha_t(j) \gets b_j(o_t)\sum_{i}
+                \tilde\alpha_{t-1}(i)\,A_{ij}$ \\
+7: \quad \textbf{конец для} \\
+8: \quad $\tilde\alpha_t \gets \alpha_t / \sum_k \alpha_t(k)$ \\
+9: \quad \textbf{выдать} $\hat\varphi(t) \gets \argmaxop_i \tilde\alpha_t(i)$ \\
+10: \textbf{конец для} \\
 \rule{\linewidth}{0.4pt}
 \end{minipage}\par}
 \addvspace{4pt}
 
-Алгоритм Viterbi возвращает не апостериорное распределение, а одну
-наиболее вероятную траекторию состояний $s_1^*,\dots,s_T^*$. Он
-оперирует величинами
-$\delta_t(i) = \max_{s_1,\dots,s_{t-1}}
-\Prb(s_1,\dots,s_t=i,\,o_1,\dots,o_t\mid\lambda)$
-и обратными указателями $\psi_t(i)$:
-\begin{equation}
-\eqlab{viterbi-delta}
-\delta_t(j) = b_j(o_t)\,\max_{i}\bigl[\delta_{t-1}(i)\,A_{ij}\bigr],
-\end{equation}
-\begin{equation}
-\eqlab{viterbi-psi}
-\psi_t(j) = \argmaxop_{i}\bigl[\delta_{t-1}(i)\,A_{ij}\bigr],
-\end{equation}
-с инициализацией $\delta_1(j)=\pi_j\,b_j(o_1)$ и $\psi_1(j)=0$.
-Оптимальная траектория восстанавливается обратным проходом:
-$s_T^*=\argmaxop_j\delta_T(j)$, $s_{t-1}^*=\psi_t(s_t^*)$.
+Эквивалентная log-форма для предотвращения underflow:
+$\log\alpha_t(j) = \log b_j(o_t) + \mathrm{logsumexp}_i\bigl[
+\log\tilde\alpha_{t-1}(i) + \log A_{ij}\bigr]$, что предпочтительнее
+при больших~$N$ и длинных~$T$.
 
-В нашем трекере Viterbi используется в \textit{режиме отложенного
-анализа}: после исполнения каждого фрагмента партитуры (например,
-после двойной чёрточки) выполняется обратный проход по
-накопленным $\delta$ и $\psi$, что позволяет уточнить выровнянную
-последовательность для дальнейшего обучения CNN-эмиссии и
-обновления статистик переходов на следующих исполнениях.
+\paragraph*{Backward-рекурсия.} Симметричная переменная
+$\beta_t(i)=\Prb(o_{t+1:T}\mid q_t=S_i,\lambda)$ необходима
+прежде всего для алгоритма Баума-Уэлча и для апостериорных
+оценок $\gamma_t(i) = \alpha_t(i)\beta_t(i) / \Prb(O\mid\lambda)$.
+Рекурсия~\cite[уравн.~24--25]{Rabiner1989}:
+\begin{equation}
+\beta_T(i) = 1, \qquad
+\beta_t(i) = \sum_{j=1}^N A_{ij}\,b_j(o_{t+1})\,\beta_{t+1}(j),
+\eqlab{backward-app}
+\end{equation}
+для $t=T-1,T-2,\dots,1$.
 
-Сложность одного шага обоих алгоритмов составляет $O(N)$ за счёт
-полосной структуры матрицы $A$ из~\eqref{eq:transition-matrix}:
-вместо суммирования по всем состояниям достаточно обработать три
-ненулевых перехода. Память~--- $O(N)$ для Forward и $O(N T)$ для
-Viterbi (требуется хранить указатели $\psi_t$ за весь интервал
-анализа).
+\paragraph*{Алгоритм Витерби.} Решает задачу декодирования по
+критерию максимально вероятного пути за время $O(N^2 T)$ и
+память $O(NT)$. Псевдокод~\cite[уравн.~32--35]{Rabiner1989}:
+
+\par\addvspace{2pt}
+{\centering
+\begin{minipage}{0.97\linewidth}
+\footnotesize
+\textbf{Алгоритм 2.} Viterbi для отложенного анализа. \\[1pt]
+\rule{\linewidth}{0.4pt}\vspace{1pt}\\
+\textbf{Вход:} $\lambda$; полная последовательность $o_{1:T}$ \\
+\textbf{Выход:} оптимальная траектория $q^*_{1:T}$ \\
+1: $\delta_1(i) \gets \pi_i\,b_i(o_1)$, $\psi_1(i) \gets 0$ \\
+2: \textbf{для} $t = 2,\dots,T$ \textbf{выполнить} \\
+3: \quad \textbf{для} $j=1,\dots,N$ \textbf{выполнить} \\
+4: \quad\quad $\delta_t(j) \gets b_j(o_t)\,\max_i [\delta_{t-1}(i)A_{ij}]$ \\
+5: \quad\quad $\psi_t(j) \gets \argmaxop_i [\delta_{t-1}(i)A_{ij}]$ \\
+6: \quad \textbf{конец для} \\
+7: \textbf{конец для} \\
+8: $q^*_T \gets \argmaxop_j \delta_T(j)$ \\
+9: \textbf{для} $t = T-1, T-2,\dots,1$ \textbf{выполнить} \\
+10: \quad $q^*_t \gets \psi_{t+1}(q^*_{t+1})$ \\
+11: \textbf{конец для} \\
+\rule{\linewidth}{0.4pt}
+\end{minipage}\par}
+\addvspace{4pt}
+
+В практических реализациях работают с
+$\log\delta_t(i)$~\cite[уравн.~104--105]{Rabiner1989}, что
+устраняет необходимость в нормировке.
+
+\paragraph*{Алгоритм Баума-Уэлча.} Для решения задачи обучения
+вводятся вспомогательные величины
+\begin{equation}
+\xi_t(i,j) = \frac{\alpha_t(i)\,A_{ij}\,b_j(o_{t+1})\,
+                   \beta_{t+1}(j)}{\Prb(O\mid\lambda)},
+\quad
+\gamma_t(i) = \sum_{j=1}^N \xi_t(i,j),
+\eqlab{baum-welch-aux}
+\end{equation}
+после чего параметры обновляются
+по~\cite[уравн.~40a--40c]{Rabiner1989}:
+\begin{align}
+\bar\pi_i  &= \gamma_1(i),
+\eqlab{bw-pi} \\
+\bar A_{ij} &= \frac{\sum_{t=1}^{T-1}\xi_t(i,j)}
+                    {\sum_{t=1}^{T-1}\gamma_t(i)},
+\eqlab{bw-a} \\
+\bar b_j(v_k) &= \frac{\sum_{t:\,o_t=v_k}\gamma_t(j)}
+                      {\sum_{t=1}^{T}\gamma_t(j)}.
+\eqlab{bw-b}
+\end{align}
+Обновлённые параметры $\bar\lambda$ гарантированно не уменьшают
+правдоподобие наблюдений~\cite[\S~III-C]{Rabiner1989}; сходимость~---
+к локальному, не глобальному, максимуму. Для непрерывных
+наблюдений с гауссовыми смесями переоценка расширяется до
+коэффициентов смеси, средних и матриц ковариации~\cite[уравн.~52--54]{Rabiner1989}.

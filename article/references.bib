@@ -1,7 +1,10 @@
 % =====================================================================
 % references.bib — bibliography for MusicTech paper
-% Add new entries here. Use lower-case keys: AuthorYear:topic
+% Major expansion: integrated 26+ peer-reviewed references read in
+% detail. Cyrillic comments below describe each thematic block.
 % =====================================================================
+
+% --------- Класcика score-following + DTW (1978-2010) -----------------
 
 @inproceedings{Dannenberg1984,
   author    = {Roger B. Dannenberg},
@@ -9,7 +12,8 @@
   booktitle = {Proc. of the International Computer Music Conference
                (ICMC)},
   pages     = {193--198},
-  year      = {1984}
+  year      = {1984},
+  publisher = {ICMA}
 }
 
 @inproceedings{Vercoe1984,
@@ -19,7 +23,8 @@
   booktitle = {Proc. of the International Computer Music Conference
                (ICMC)},
   pages     = {199--200},
-  year      = {1984}
+  year      = {1984},
+  publisher = {ICMA}
 }
 
 @article{SakoeChiba1978,
@@ -27,31 +32,21 @@
   title   = {Dynamic Programming Algorithm Optimization for Spoken
              Word Recognition},
   journal = {IEEE Trans. on Acoustics, Speech, and Signal Processing},
-  volume  = {26},
+  volume  = {ASSP-26},
   number  = {1},
   pages   = {43--49},
   year    = {1978}
-}
-
-@article{Rabiner1989,
-  author  = {Lawrence R. Rabiner},
-  title   = {A Tutorial on Hidden {Markov} Models and Selected
-             Applications in Speech Recognition},
-  journal = {Proc. of the IEEE},
-  volume  = {77},
-  number  = {2},
-  pages   = {257--286},
-  year    = {1989}
 }
 
 @inproceedings{Dixon2005,
   author    = {Simon Dixon},
   title     = {Live Tracking of Musical Performances Using On-Line
                Time Warping},
-  booktitle = {Proc. of the 8th International Conference on Digital
-               Audio Effects (DAFx)},
+  booktitle = {Proc. of the 8th Int. Conf. on Digital Audio Effects
+               (DAFx)},
   pages     = {92--97},
-  year      = {2005}
+  year      = {2005},
+  address   = {Madrid, Spain}
 }
 
 @inproceedings{OrioDechelle2001,
@@ -61,7 +56,45 @@
   booktitle = {Proc. of the International Computer Music Conference
                (ICMC)},
   pages     = {151--154},
-  year      = {2001}
+  year      = {2001},
+  publisher = {ICMA}
+}
+
+@article{Cont2010,
+  author  = {Arshia Cont},
+  title   = {A Coupled Duration-Focused Architecture for Real-Time
+             Music-to-Score Alignment},
+  journal = {IEEE Trans. on Pattern Analysis and Machine
+             Intelligence},
+  volume  = {32},
+  number  = {6},
+  pages   = {974--987},
+  year    = {2010},
+  doi     = {10.1109/TPAMI.2009.106}
+}
+
+@inproceedings{Raphael2010,
+  author    = {Christopher Raphael},
+  title     = {Music Plus One and Machine Learning},
+  booktitle = {Proc. of the 27th International Conference on Machine
+               Learning (ICML)},
+  year      = {2010},
+  address   = {Haifa, Israel},
+  publisher = {Omnipress}
+}
+
+% --------- HMM-теория и ранние HMM-следователи -----------------------
+
+@article{Rabiner1989,
+  author  = {Lawrence R. Rabiner},
+  title   = {A Tutorial on Hidden {Markov} Models and Selected
+             Applications in Speech Recognition},
+  journal = {Proc. of the IEEE},
+  volume  = {77},
+  number  = {2},
+  pages   = {257--286},
+  year    = {1989},
+  doi     = {10.1109/5.18626}
 }
 
 @inproceedings{Cont2006,
@@ -75,43 +108,17 @@
 }
 
 @article{Nakamura2015,
-  author  = {Eita Nakamura and Kazuyoshi Yoshii and Shigeki Sagayama},
+  author  = {Tomohiko Nakamura and Eita Nakamura and Shigeki
+             Sagayama},
   title   = {Real-Time Audio-to-Score Alignment of Music Performances
              Containing Errors and Arbitrary Repeats and Skips},
-  journal = {IEEE/ACM Trans. on Audio, Speech, and Language Processing},
+  journal = {IEEE/ACM Trans. on Audio, Speech, and Language
+             Processing},
   volume  = {23},
   number  = {11},
   pages   = {1911--1925},
-  year    = {2015}
-}
-
-@article{Dorfer2018,
-  author  = {Matthias Dorfer and Jan Haji\v{c} Jr. and Andreas Arzt
-             and Harald Frostel and Gerhard Widmer},
-  title   = {Learning Audio--Sheet Music Correspondences for
-             Cross-Modal Retrieval and Piece Identification},
-  journal = {Trans. of the International Society for Music Information
-             Retrieval (TISMIR)},
-  volume  = {1},
-  number  = {1},
-  pages   = {22--33},
-  year    = {2018}
-}
-
-@inproceedings{Henkel2025,
-  author    = {Florian Henkel and Stefan Balke and Gerhard Widmer},
-  title     = {{HeurMiT}: Heuristic-Guided Neural Score Following for
-               Musical Instruments},
-  booktitle = {Proc. of the International Society for Music Information
-               Retrieval Conference (ISMIR)},
-  year      = {2025}
-}
-
-@book{Mueller2007,
-  author    = {Meinard M\"uller},
-  title     = {Information Retrieval for Music and Motion},
-  publisher = {Springer},
-  year      = {2007}
+  year    = {2015},
+  doi     = {10.1109/TASLP.2015.2507862}
 }
 
 @phdthesis{Arzt2016,
@@ -121,16 +128,163 @@
   year   = {2016}
 }
 
-@inproceedings{Raphael2010,
-  author    = {Christopher Raphael},
-  title     = {Music Plus One and Machine Learning},
-  booktitle = {Proc. of the 27th International Conference on Machine
-               Learning (ICML)},
-  pages     = {21--28},
-  year      = {2010}
+% --------- Современные deep-learning подходы к alignment --------------
+
+@inproceedings{ArztLattner2018,
+  author    = {Andreas Arzt and Stefan Lattner},
+  title     = {Audio-to-Score Alignment Using Transposition-Invariant
+               Features},
+  booktitle = {Proc. of the 19th International Society for Music
+               Information Retrieval Conference (ISMIR)},
+  year      = {2018},
+  address   = {Paris, France}
 }
 
-% --------- Reinforcement learning references --------------------------
+@article{Henkel2021,
+  author  = {Florian Henkel and Gerhard Widmer},
+  title   = {Real-Time Music Following in Score Sheet Images via
+             Multi-Resolution Prediction},
+  journal = {Frontiers in Computer Science},
+  volume  = {3},
+  articleno = {718340},
+  year    = {2021},
+  doi     = {10.3389/fcomp.2021.718340}
+}
+
+@inproceedings{AgrawalDixon2019,
+  author    = {Ruchit Agrawal and Simon Dixon},
+  title     = {A Hybrid Approach to Audio-to-Score Alignment},
+  booktitle = {Proc. of the 36th International Conference on Machine
+               Learning (ICML), Workshop on Machine Learning for
+               Music Discovery},
+  year      = {2019},
+  address   = {Long Beach, USA}
+}
+
+% --------- Piano transcription (CNN-эмиссии) --------------------------
+
+@inproceedings{Hawthorne2018,
+  author    = {Curtis Hawthorne and Erich Elsen and Jialin Song
+               and Adam Roberts and Ian Simon and Colin Raffel
+               and Jesse Engel and Sageev Oore and Douglas Eck},
+  title     = {Onsets and Frames: Dual-Objective Piano
+               Transcription},
+  booktitle = {Proc. of the 19th International Society for Music
+               Information Retrieval Conference (ISMIR)},
+  year      = {2018},
+  address   = {Paris, France}
+}
+
+@inproceedings{Hawthorne2019Maestro,
+  author    = {Curtis Hawthorne and Andriy Stasyuk and Adam Roberts
+               and Ian Simon and Cheng-Zhi Anna Huang
+               and Sander Dieleman and Erich Elsen and Jesse Engel
+               and Douglas Eck},
+  title     = {Enabling Factorized Piano Music Modeling and
+               Generation with the {MAESTRO} Dataset},
+  booktitle = {Proc. of the International Conference on Learning
+               Representations (ICLR)},
+  year      = {2019}
+}
+
+@inproceedings{ChoiCho2019,
+  author    = {Keunwoo Choi and Kyunghyun Cho},
+  title     = {Deep Unsupervised Drum Transcription},
+  booktitle = {Proc. of the 20th International Society for Music
+               Information Retrieval Conference (ISMIR)},
+  year      = {2019},
+  address   = {Delft, Netherlands}
+}
+
+@article{NakamuraMRF2017,
+  author  = {Eita Nakamura and Kazuyoshi Yoshii and Simon Dixon},
+  title   = {Note Value Recognition for Piano Transcription Using
+             {Markov} Random Fields},
+  journal = {IEEE/ACM Trans. on Audio, Speech, and Language
+             Processing},
+  year    = {2017},
+  doi     = {10.1109/TASLP.2017.2722103}
+}
+
+@article{Dorfer2018Sheet,
+  author  = {Matthias Dorfer and Jan Haji\v{c} Jr. and Andreas Arzt
+             and Harald Frostel and Gerhard Widmer},
+  title   = {Learning Audio--Sheet Music Correspondences for
+             Cross-Modal Retrieval and Piece Identification},
+  journal = {Trans. of the International Society for Music
+             Information Retrieval (TISMIR)},
+  volume  = {1},
+  number  = {1},
+  pages   = {22--33},
+  year    = {2018},
+  doi     = {10.5334/tismir.12}
+}
+
+% --------- RL для music и score-following -----------------------------
+
+@inproceedings{Dorfer2018RL,
+  author    = {Matthias Dorfer and Florian Henkel and Gerhard
+               Widmer},
+  title     = {Learning to Listen, Read, and Follow: Score Following
+               as a Reinforcement Learning Game},
+  booktitle = {Proc. of the 19th International Society for Music
+               Information Retrieval Conference (ISMIR)},
+  pages     = {784--791},
+  year      = {2018},
+  address   = {Paris, France}
+}
+
+@inproceedings{Peter2023,
+  author    = {Silvan David Peter},
+  title     = {Online Symbolic Music Alignment with Offline
+               Reinforcement Learning},
+  booktitle = {Proc. of the 24th International Society for Music
+               Information Retrieval Conference (ISMIR)},
+  year      = {2023},
+  address   = {Milan, Italy},
+  note      = {arXiv:2401.00466}
+}
+
+@inproceedings{Jiang2020RLDuet,
+  author    = {Nan Jiang and Sheng Jin and Zhiyao Duan and
+               Changshui Zhang},
+  title     = {{RL}-Duet: Online Music Accompaniment Generation
+               Using Deep Reinforcement Learning},
+  booktitle = {Proc. of the AAAI Conference on Artificial
+               Intelligence},
+  volume    = {34},
+  pages     = {710--718},
+  year      = {2020}
+}
+
+@inproceedings{Wu2024ReaLchords,
+  author    = {Yusong Wu and Tim Cooijmans and Kyle Kastner
+               and Adam Roberts and Ian Simon
+               and Alexander Scarlatos and Chris Donahue
+               and Cassie Tarakajian and Shayegan Omidshafiei
+               and Aaron Courville and Pablo Samuel Castro
+               and Natasha Jaques and Cheng-Zhi Anna Huang},
+  title     = {Adaptive Accompaniment with {ReaLchords}},
+  booktitle = {Proc. of the 41st International Conference on Machine
+               Learning (ICML)},
+  series    = {PMLR 235},
+  year      = {2024}
+}
+
+@inproceedings{Jaques2017SeqTutor,
+  author    = {Natasha Jaques and Shixiang Gu and Dzmitry Bahdanau
+               and Jos\'e Miguel Hern\'andez-Lobato
+               and Richard E. Turner and Douglas Eck},
+  title     = {Sequence Tutor: Conservative Fine-Tuning of Sequence
+               Generation Models with {KL}-control},
+  booktitle = {Proc. of the 34th International Conference on Machine
+               Learning (ICML)},
+  series    = {PMLR 70},
+  pages     = {1645--1654},
+  year      = {2017}
+}
+
+% --------- RL фундамент ----------------------------------------------
 
 @book{SuttonBarto2018,
   author    = {Richard S. Sutton and Andrew G. Barto},
@@ -141,16 +295,26 @@
 }
 
 @article{Schulman2017PPO,
-  author  = {John Schulman and Filip Wolski and Prafulla Dhariwal and
-             Alec Radford and Oleg Klimov},
+  author  = {John Schulman and Filip Wolski and Prafulla Dhariwal
+             and Alec Radford and Oleg Klimov},
   title   = {Proximal Policy Optimization Algorithms},
   journal = {arXiv preprint arXiv:1707.06347},
   year    = {2017}
 }
 
+@inproceedings{Schulman2016GAE,
+  author    = {John Schulman and Philipp Moritz and Sergey Levine
+               and Michael I. Jordan and Pieter Abbeel},
+  title     = {High-Dimensional Continuous Control Using
+               Generalized Advantage Estimation},
+  booktitle = {Proc. of the International Conference on Learning
+               Representations (ICLR)},
+  year      = {2016}
+}
+
 @inproceedings{Christiano2017Preference,
-  author    = {Paul Christiano and Jan Leike and Tom B. Brown and
-               Miljan Martic and Shane Legg and Dario Amodei},
+  author    = {Paul Christiano and Jan Leike and Tom B. Brown
+               and Miljan Martic and Shane Legg and Dario Amodei},
   title     = {Deep Reinforcement Learning from Human Preferences},
   booktitle = {Advances in Neural Information Processing Systems
                (NeurIPS)},
@@ -169,8 +333,45 @@
   year    = {1998}
 }
 
-% --------- SSMM, DF, multiview metric learning (cross-pollination
-%           from astronomical time-series classification) ----------
+% --------- Survey / design space --------------------------------------
+
+@article{Bellet2014Metric,
+  author  = {Aur\'elien Bellet and Amaury Habrard and Marc Sebban},
+  title   = {A Survey on Metric Learning for Feature Vectors and
+             Structured Data},
+  journal = {arXiv preprint arXiv:1306.6709},
+  year    = {2014}
+}
+
+@inproceedings{Kim2026LiveAgents,
+  author    = {Yewon Kim and Stephen Brade and Alexander Wang
+               and David Zhou and Haven Kim and Bill Wang
+               and Sung-Ju Lee and Hugo F. Flores Garcia
+               and Cheng-Zhi Anna Huang and Chris Donahue},
+  title     = {A Design Space for Live Music Agents},
+  booktitle = {Proc. of the 2026 CHI Conference on Human Factors in
+               Computing Systems (CHI '26)},
+  year      = {2026},
+  address   = {Barcelona, Spain},
+  doi       = {10.1145/3772318.3791291}
+}
+
+@book{Mueller2007,
+  author    = {Meinard M\"uller},
+  title     = {Information Retrieval for Music and Motion},
+  publisher = {Springer},
+  year      = {2007}
+}
+
+@book{MullerFMP2015,
+  author    = {Meinard M\"uller},
+  title     = {Fundamentals of Music Processing},
+  publisher = {Springer},
+  year      = {2015}
+}
+
+% --------- Cross-domain: SSMM, DF, multiview metric learning ---------
+% (астроинформатические работы Johnston & Peter)
 
 @article{Johnston2020,
   author  = {Kyle B. Johnston and Saida M. Caballero-Nieves and
@@ -217,13 +418,25 @@
   doi       = {10.1007/978-3-319-16811-1_17}
 }
 
-@book{BelletMetricLearning2015,
-  author    = {Aur{\'e}lien Bellet and Amaury Habrard and
-               Marc Sebban},
-  title     = {Metric Learning},
-  series    = {Synthesis Lectures on Artificial Intelligence and
-               Machine Learning},
-  volume    = {9},
-  publisher = {Morgan {\&} Claypool},
-  year      = {2015}
+@inproceedings{Weinberger2009LMNN,
+  author    = {Kilian Q. Weinberger and Lawrence K. Saul},
+  title     = {Distance Metric Learning for Large Margin Nearest
+               Neighbor Classification},
+  booktitle = {Journal of Machine Learning Research},
+  volume    = {10},
+  pages     = {207--244},
+  year      = {2009}
+}
+
+% --------- LMNN, Bradley-Terry preference, supplementary -------------
+
+@article{BradleyTerry1952,
+  author  = {Ralph A. Bradley and Milton E. Terry},
+  title   = {Rank Analysis of Incomplete Block Designs: I. The
+             Method of Paired Comparisons},
+  journal = {Biometrika},
+  volume  = {39},
+  number  = {3/4},
+  pages   = {324--345},
+  year    = {1952}
 }
