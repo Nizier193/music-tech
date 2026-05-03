@@ -48,7 +48,11 @@
 }
 
 % --- Hyperref + numeric square-bracket citations ---
-\usepackage{hyperref}
+% colorlinks=true draws coloured text instead of boxes (same as main.tex)
+\usepackage[colorlinks=true,
+            linkcolor=blue,
+            citecolor=blue,
+            urlcolor=blue]{hyperref}
 \setcitestyle{numbers,square,sort&compress}
 
 % --- Page footer with conference banner (same as main paper) ---
