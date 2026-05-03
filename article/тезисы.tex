@@ -1,0 +1,328 @@
+% =====================================================================
+% Тезисы для конференции «Научный телеграф» (Центральный Университет /
+% Т-Банк, май 2026). Стиль наследуется от paper/main.tex (REVTeX 4-2),
+% но без twocolumn — тезисы на 1.5–2 страницы одной колонкой.
+% =====================================================================
+\documentclass[%
+  aps,pre,
+  superscriptaddress,
+  longbibliography,nofootinbib,
+  showkeys,
+  amsmath,amssymb,floatfix
+]{revtex4-2}
+
+% --- Encoding & languages — Cyrillic-aware ---
+\usepackage[T1,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{cmap}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Font setup: hybrid Times-math + CM-Cyrillic ---
+\usepackage{mathptmx}
+\renewcommand{\rmdefault}{cmr}
+\DeclareMathSizes{10}{9}{6.5}{5}
+
+% --- Math + symbols ---
+\usepackage{amsmath,amssymb,amsfonts,mathtools}
+
+% --- Floats / tables / figures ---
+\usepackage{graphicx}
+\usepackage{booktabs}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt plus 1pt minus 1pt}
+\setlength{\belowcaptionskip}{0pt}
+
+% --- TikZ for the architecture diagram ---
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,shapes.geometric,
+                automata,matrix,decorations.pathreplacing,patterns}
+\tikzset{
+  >={Latex[length=2mm,width=1.5mm]},
+  block/.style ={rectangle, draw=black, thick, rounded corners=2pt,
+                 minimum height=8mm, align=center, font=\small},
+  arrow/.style ={-Stealth, thick},
+}
+
+% --- Hyperref + numeric square-bracket citations ---
+\usepackage{hyperref}
+\setcitestyle{numbers,square,sort&compress}
+
+% --- Page footer with conference banner (same as main paper) ---
+\usepackage{fancyhdr}
+\newcommand{\confbanner}{%
+  \itshape\footnotesize
+  Мультидисциплинарная молодежная конференция
+  Центрального университета \guillemotleft Научный телеграф\guillemotright}
+\fancypagestyle{withbanner}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\confbanner}%
+  \fancyfoot[R]{\thepage}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+\pagestyle{withbanner}
+
+% --- Math shortcuts (used in main paper) ---
+\providecommand{\Real}{\mathbb{R}}
+\providecommand{\Expect}{\mathbb{E}}
+\providecommand{\Prb}{\mathbb{P}}
+\DeclareMathOperator*{\argmaxop}{arg\,max}
+\DeclareMathOperator*{\argminop}{arg\,min}
+
+% --- Cross-reference helpers ---
+\newcommand{\eqlab}[1]{\label{eq:#1}}
+\newcommand{\seclab}[1]{\label{sec:#1}}
+\newcommand{\figlab}[1]{\label{fig:#1}}
+\newcommand{\Eqref}[1]{уравн.~\eqref{eq:#1}}
+\newcommand{\Figref}[1]{РИС.~\ref{fig:#1}}
+
+% --- Section heading macro: same look as main paper ---
+\newcounter{musecct}
+\renewcommand{\themusecct}{\Roman{musecct}}
+\makeatletter
+\newcommand{\sect}[2]{%
+  \par\addvspace{0.35\baselineskip}%
+  \refstepcounter{musecct}%
+  \begingroup
+    \centering
+    \normalsize\bfseries
+    \MakeUppercase{#1}%
+    \par
+  \endgroup
+  \seclab{#2}%
+  \nopagebreak
+  \addvspace{0.12\baselineskip}%
+  \@afterindentfalse\@afterheading
+  \ignorespaces}
+\makeatother
+
+\renewcommand{\thetable}{\arabic{table}}
+\addto\captionsrussian{%
+  \renewcommand{\figurename}{РИС.}%
+  \renewcommand{\tablename}{ТАБЛ.}%
+}
+
+% Russian "Ключевые слова:" label
+\makeatletter
+\renewcommand{\@keys@name}{{\small\bfseries Ключевые слова:}\space}
+\makeatother
+
+% Author-name helpers
+\providecommand{\firstname}[1]{#1}
+\providecommand{\surname}[1]{#1}
+\makeatletter
+\renewcommand{\andname}{}
+\def\@listand{\@ifnum{\@tempcnta=\tw@}{,\space}{}}
+\makeatother
+
+% =====================================================================
+\begin{document}
+\selectlanguage{russian}
+
+\keywords{отслеживание партитуры, скрытые марковские модели,
+          on-line time warping, обучение с подкреплением,
+          опережающее предсказание темпа,
+          виртуальный оркестр}
+
+\title{\MakeUppercase{Теоретические основы отслеживания партитуры в
+       реальном времени: от скрытых марковских моделей к обучению с
+       подкреплением}}
+
+\author{\firstname{Н.~А.}~\surname{Новицкий}}
+\email{n.novitskiy@edu.centraluniversity.ru}
+\affiliation{\textit{АНО Центральный Университет, бывш. НИУ ВШЭ}}
+
+\author{\firstname{Н.~С.}~\surname{Борисов}}
+\email{n.borisov@edu.centraluniversity.ru}
+\affiliation{\textit{АНО Центральный Университет}}
+
+\begin{abstract}
+\textbf{Аннотация.}\space
+В работе проведено систематическое теоретическое изложение моделей
+и алгоритмов отслеживания партитуры в реальном времени с акцентом
+на современное направление~--- применение обучения с подкреплением.
+Рассмотрены классические алгоритмы динамического программирования,
+скрытые марковские модели и их полу-марковские расширения, а также
+пять известных в литературе RL-применений к музыкальному
+аккомпанементу. Сформулирована теоретическая постановка гибридного
+подхода, в котором RL-агент действует как тонкий слой опережающего
+предсказания темпа поверх классического вероятностного трекера, а
+не заменяет его целиком. Численные эксперименты не приводятся;
+работа имеет обзорный и теоретический характер.
+\end{abstract}
+
+\maketitle
+\thispagestyle{withbanner}
+
+\sect{Актуальность и цель}{intro}
+%
+Системы автоматического аккомпанемента нужны учащимся
+консерваторий и концертирующим солистам как замена живого
+оркестра при подготовке концертных произведений. Технически
+задача сводится к отслеживанию партитуры в реальном времени
+(\textit{score following})~\cite{Dannenberg1984}: по поступающему
+каузально потоку наблюдений и заранее известной партитуре
+требуется оценивать текущую позицию исполнителя с задержкой не
+более $20$\,мс~--- порога восприятия рассинхронизации в
+музыкальном ансамбле~\cite{Cont2010}. За четыре десятилетия в
+области сменилось несколько парадигм: классическое динамическое
+программирование~\cite{SakoeChiba1978,Dixon2005}, скрытые
+марковские модели и их полу-марковские
+расширения~\cite{Rabiner1989,Cont2010,Nakamura2015}, современные
+нейросетевые подходы~\cite{Henkel2021} и относительно новое
+направление, формализующее задачу как обучение с
+подкреплением~\cite{Dorfer2018RL,Peter2023,Wu2024ReaLchords}.
+Появление работ~\cite{Dorfer2018RL,Peter2023,Wu2024ReaLchords}
+делает актуальным систематический теоретический разбор всего
+семейства методов. Цель работы~--- дать математически выверенный,
+прослеживаемый по литературе фундамент и явно сформулировать,
+чего в существующих RL-подходах не сделано.
+
+\sect{Основная идея}{idea}
+%
+Из обзора работ~\cite{Dorfer2018RL,Peter2023,Jiang2020RLDuet,
+Wu2024ReaLchords,Jaques2017SeqTutor} следует, что чистая
+RL-замена классического трекера~\cite{Dorfer2018RL} требует
+тщательно размеченных данных уровня <<позиция-в-каждый-момент>> и
+не использует априорную структуру партитуры (повторы, скачки,
+явные длительности нот), естественно описываемую полу-марковскими
+моделями. С другой стороны, классические трекеры~\cite{Cont2010}
+обладают зрелой математической базой, но их
+\textit{anticipation}-механизм зашит в виде явных байесовских
+обновлений и неадаптивен к стилю солиста. Предлагается
+\textit{гибридная} архитектура (\Figref{rl-agent}): классический
+вероятностный трекер сохраняется как ядро системы, а RL-агент
+действует как \textit{тонкий слой опережающего предсказания
+темпа} на горизонте $200$--$500$\,мс с состоянием
+$s_t = (\hat\alpha_t, \tau_{t-K:t}, e_{t-K:t}, \hat\varphi(t)/N)$
+и непрерывным действием
+$a_t \in [0{,}5;\,2{,}0]$~--- мультипликативным темповым
+коэффициентом. Вознаграждение
+\begin{equation}
+r_t = -|t^{\text{render}}_t - t^{\text{perf}}_t|
+      - \lambda\,\mathcal{L}_{\text{align}}(t)
+      - \mu\,(a_t - a_{t-1})^2
+\eqlab{reward-thesis}
+\end{equation}
+сочетает временное рассогласование, потерю выравнивания базового
+трекера и штраф за резкие изменения темпа. Политика
+$\pi_\theta(a\mid s)$ обучается двустадийно: сначала
+behavioural cloning по выровненным учителям, затем PPO~\cite{Schulman2017PPO}.
+
+\par\addvspace{2pt}
+{\centering
+\refstepcounter{figure}\figlab{rl-agent}%
+\resizebox{0.85\linewidth}{!}{\input{figures/tikz/rl_agent.tex}}\par
+\vspace{2pt}
+\footnotesize
+\figurename~\thefigure. Схема предлагаемой гибридной архитектуры:
+базовый вероятностный трекер выдаёт состояние~$s_t$, RL-агент~---
+темповый коэффициент~$a_t$ на горизонте $200$--$500$\,мс,
+рендерер и симулятор солиста замыкают обратную связь через
+вознаграждение $r_t$.\par}
+\addvspace{4pt}
+
+\sect{Положение и ценность}{position}
+%
+В рамках известных авторам работ предлагаемая схема не попадает
+ни в одну из четырёх групп: (i)~RL-агент \textit{заменяет} трекер
+целиком~\cite{Dorfer2018RL}; (ii)~RL-агент в myopic-режиме
+решает задачу онлайн-выравнивания символьного
+входа~\cite{Peter2023}; (iii)~RL применяется к \textit{генерации}
+нового музыкального материала~\cite{Jiang2020RLDuet,Wu2024ReaLchords};
+(iv)~RL применяется к общему KL-контролю предобученной
+последовательностной модели~\cite{Jaques2017SeqTutor}. Ни одна
+из перечисленных работ не рассматривает RL-агента как отдельный
+тонкий слой опережающего предсказания темпа поверх сохраняемого
+классического трекера. Ожидаемые свойства предложенной
+рамки~--- вероятностная интерпретируемость через
+forward-распределение, возможность адаптации под индивидуального
+солиста и разделение задач между трекером и агентом для
+упрощения диагностики. Полная версия работы~---
+$19$-страничная статья~\cite{Novitsky2026Paper}~--- содержит
+подробное изложение математического аппарата с числовыми
+примерами и обзор 26 работ.
+
+\bibliographystyle{apsrev4-2}
+\begin{thebibliography}{99}
+\bibitem{Dannenberg1984}
+\textit{Dannenberg R. B.} An On-Line Algorithm for Real-Time
+Accompaniment // Proc. of the International Computer Music
+Conference (ICMC). --- 1984. --- P. 193--198.
+
+\bibitem{SakoeChiba1978}
+\textit{Sakoe H., Chiba S.} Dynamic Programming Algorithm
+Optimization for Spoken Word Recognition // IEEE Trans. on
+Acoustics, Speech, and Signal Processing. --- 1978. ---
+Vol. ASSP-26, No. 1. --- P. 43--49.
+
+\bibitem{Dixon2005}
+\textit{Dixon S.} Live Tracking of Musical Performances Using
+On-Line Time Warping // Proc. of the 8th Int. Conf. on Digital
+Audio Effects (DAFx). --- 2005. --- P. 92--97.
+
+\bibitem{Rabiner1989}
+\textit{Rabiner L. R.} A Tutorial on Hidden Markov Models and
+Selected Applications in Speech Recognition // Proc. of the
+IEEE. --- 1989. --- Vol. 77, No. 2. --- P. 257--286.
+
+\bibitem{Cont2010}
+\textit{Cont A.} A Coupled Duration-Focused Architecture for
+Real-Time Music-to-Score Alignment // IEEE Trans. on Pattern
+Analysis and Machine Intelligence. --- 2010. --- Vol. 32,
+No. 6. --- P. 974--987.
+
+\bibitem{Nakamura2015}
+\textit{Nakamura T., Nakamura E., Sagayama S.} Real-Time
+Audio-to-Score Alignment of Music Performances Containing
+Errors and Arbitrary Repeats and Skips // IEEE/ACM TASLP. ---
+2015. --- Vol. 23, No. 11. --- P. 1911--1925.
+
+\bibitem{Henkel2021}
+\textit{Henkel F., Widmer G.} Real-Time Music Following in Score
+Sheet Images via Multi-Resolution Prediction // Frontiers in
+Computer Science. --- 2021. --- Vol. 3. --- Article 718340.
+
+\bibitem{Dorfer2018RL}
+\textit{Dorfer M., Henkel F., Widmer G.} Learning to Listen,
+Read, and Follow: Score Following as a Reinforcement Learning
+Game // Proc. of ISMIR 2018. --- P. 784--791.
+
+\bibitem{Peter2023}
+\textit{Peter S. D.} Online Symbolic Music Alignment with
+Offline Reinforcement Learning // Proc. of ISMIR 2023. ---
+arXiv:2401.00466.
+
+\bibitem{Jiang2020RLDuet}
+\textit{Jiang N., Jin S., Duan Z., Zhang C.} RL-Duet: Online
+Music Accompaniment Generation Using Deep Reinforcement
+Learning // Proc. of AAAI. --- 2020. --- Vol. 34. ---
+P. 710--718.
+
+\bibitem{Wu2024ReaLchords}
+\textit{Wu Y. et al.} Adaptive Accompaniment with ReaLchords //
+Proc. of the 41st International Conference on Machine Learning
+(ICML). --- 2024. --- PMLR 235.
+
+\bibitem{Schulman2017PPO}
+\textit{Schulman J., Wolski F., Dhariwal P., Radford A.,
+Klimov O.} Proximal Policy Optimization Algorithms //
+arXiv preprint arXiv:1707.06347. --- 2017.
+
+\bibitem{Jaques2017SeqTutor}
+\textit{Jaques N. et al.} Sequence Tutor: Conservative
+Fine-Tuning of Sequence Generation Models with KL-control //
+Proc. of ICML 2017. --- PMLR 70. --- P. 1645--1654.
+
+\bibitem{Novitsky2026Paper}
+\textit{Новицкий Н. А., Борисов Н. С.} Теоретические основы
+отслеживания партитуры в реальном времени: от скрытых
+марковских моделей и on-line time warping к обучению с
+подкреплением. --- Полная версия работы. --- 2026.
+\end{thebibliography}
+
+\end{document}
