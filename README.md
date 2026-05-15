@@ -17,7 +17,8 @@ music-tech/
 ├── README.md                ← этот файл
 ├── ROADMAP.md               ← план команды и календарь до 17 мая
 ├── .gitignore
-├── ScoreFollowing.pdf       ← методичка по DTW / OLTW / HMM
+├── ScoreFollowing.pdf       ← методичка по DTW / OLTW / HMM (PDF)
+├── ScoreFollowing.tex       ← её LaTeX-исходник (87 КБ, самодостаточный)
 │
 ├── article/                 ← всё про статью, тезисы и презентацию
 │   ├── README.md            ← описание папки + ссылки на разделы

@@ -1,0 +1,1980 @@
+% ============================================================================
+%  Score-Following: Алгоритмы отслеживания партитуры в реальном времени
+%  MusicTech --- Центральный Университет
+%  Автор: Никита Новицкий, 2026
+% ============================================================================
+\documentclass[a4paper,11pt]{article}
+
+% --- Кодировка и язык ---
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+
+% --- Геометрия ---
+\usepackage[left=1.8cm,right=1.8cm,top=2.2cm,bottom=2.2cm]{geometry}
+
+% --- Математика ---
+\usepackage{amsmath,amssymb,amsfonts}
+
+% --- Графика и цвет ---
+\usepackage{graphicx}
+\usepackage[dvipsnames,svgnames]{xcolor}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% --- TikZ библиотеки ---
+\usetikzlibrary{
+  arrows.meta,
+  positioning,
+  shapes.geometric,
+  calc,
+  fit,
+  backgrounds,
+  decorations.pathreplacing
+}
+
+% --- Таблицы ---
+\usepackage{booktabs}
+\usepackage{tabularx}
+
+% --- tcolorbox ---
+\usepackage[most]{tcolorbox}
+
+% --- Гиперссылки ---
+\usepackage[
+  colorlinks=true,
+  linkcolor=accentblue,
+  urlcolor=accentblue!80!black,
+  citecolor=accentblue!70!black
+]{hyperref}
+
+% --- Колонтитулы ---
+\usepackage{fancyhdr}
+
+% --- Списки ---
+\usepackage{enumitem}
+
+% --- Плавающие объекты ---
+\usepackage{float}
+
+% --- Заголовки секций ---
+\usepackage{titlesec}
+
+% --- Интервалы ---
+\usepackage{setspace}
+
+% --- Листинги кода ---
+\usepackage{listings}
+
+% --- Подписи ---
+\usepackage{caption}
+
+% ============================================================================
+%  ЦВЕТА
+% ============================================================================
+\definecolor{pastelblue}{RGB}{163,210,237}
+\definecolor{pastelgreen}{RGB}{152,225,172}
+\definecolor{pastelpurple}{RGB}{200,170,220}
+\definecolor{pastelorange}{RGB}{255,210,170}
+\definecolor{pastelteal}{RGB}{170,215,220}
+\definecolor{pastelred}{RGB}{250,180,185}
+\definecolor{accentblue}{RGB}{70,130,180}
+\definecolor{sectioncolor}{RGB}{50,50,50}
+\definecolor{softgray}{RGB}{140,140,140}
+
+% ============================================================================
+%  ИНТЕРВАЛ
+% ============================================================================
+\linespread{1.15}
+
+% ============================================================================
+%  ФОРМАТ ЗАГОЛОВКОВ СЕКЦИЙ
+% ============================================================================
+\titleformat{\section}
+  {\Large\bfseries\color{sectioncolor}}
+  {\thesection}{1em}{}
+  [\vspace{-0.5em}{\color{pastelpurple}\hrule height 1.5pt}]
+
+\titleformat{\subsection}
+  {\large\bfseries\color{sectioncolor!85}}
+  {\thesubsection}{0.8em}{}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{sectioncolor!70}}
+  {\thesubsubsection}{0.6em}{}
+
+% ============================================================================
+%  КОЛОНТИТУЛЫ
+% ============================================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{softgray} MusicTech --- Центральный Университет}
+\fancyhead[R]{\small\color{softgray} Score-Following 2026}
+\fancyfoot[C]{\small\color{softgray}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{pastelpurple}\leaders\hrule height \headrulewidth\hfill}}
+
+% ============================================================================
+%  TCOLORBOX ОКРУЖЕНИЯ
+% ============================================================================
+\newtcolorbox{defbox}[1][]{
+  enhanced, breakable,
+  colback=pastelblue!12,
+  colframe=pastelblue!60!black,
+  sharp corners,
+  boxrule=0.8pt,
+  fonttitle=\bfseries,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm},
+  boxed title style={
+    colback=pastelblue!60!black,
+    colframe=pastelblue!60!black,
+    sharp corners
+  },
+  title={Определение},
+  #1
+}
+
+\newtcolorbox{algbox}[1][]{
+  enhanced, breakable,
+  colback=pastelgreen!12,
+  colframe=pastelgreen!60!black,
+  sharp corners,
+  boxrule=0.8pt,
+  fonttitle=\bfseries,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm},
+  boxed title style={
+    colback=pastelgreen!60!black,
+    colframe=pastelgreen!60!black,
+    sharp corners
+  },
+  title={Алгоритм},
+  #1
+}
+
+\newtcolorbox{exbox}[1][]{
+  enhanced, breakable,
+  colback=pastelorange!12,
+  colframe=pastelorange!60!black,
+  sharp corners,
+  boxrule=0.8pt,
+  fonttitle=\bfseries,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm},
+  boxed title style={
+    colback=pastelorange!60!black,
+    colframe=pastelorange!60!black,
+    sharp corners
+  },
+  title={Пример},
+  #1
+}
+
+\newtcolorbox{warnbox}[1][]{
+  enhanced, breakable,
+  colback=pastelred!12,
+  colframe=pastelred!60!black,
+  sharp corners,
+  boxrule=0.8pt,
+  fonttitle=\bfseries,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm},
+  boxed title style={
+    colback=pastelred!60!black,
+    colframe=pastelred!60!black,
+    sharp corners
+  },
+  title={Внимание},
+  #1
+}
+
+\newtcolorbox{notebox}[1][]{
+  enhanced, breakable,
+  colback=pastelteal!12,
+  colframe=pastelteal!60!black,
+  sharp corners,
+  boxrule=0.8pt,
+  fonttitle=\bfseries,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm},
+  boxed title style={
+    colback=pastelteal!60!black,
+    colframe=pastelteal!60!black,
+    sharp corners
+  },
+  title={Заметка},
+  #1
+}
+
+\newtcolorbox{formulabox}[1][]{
+  enhanced, breakable,
+  colback=pastelpurple!12,
+  colframe=pastelpurple!60!black,
+  sharp corners,
+  boxrule=0.8pt,
+  fonttitle=\bfseries,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm},
+  boxed title style={
+    colback=pastelpurple!60!black,
+    colframe=pastelpurple!60!black,
+    sharp corners
+  },
+  title={Формула},
+  #1
+}
+
+% ============================================================================
+%  INLINE ЦВЕТНЫЕ КОМАНДЫ
+% ============================================================================
+\newcommand{\cblue}[1]{\textcolor{accentblue}{#1}}
+\newcommand{\cgreen}[1]{\textcolor{pastelgreen!60!black}{#1}}
+\newcommand{\cpurple}[1]{\textcolor{pastelpurple!70!black}{#1}}
+\newcommand{\corange}[1]{\textcolor{pastelorange!70!black}{#1}}
+\newcommand{\cteal}[1]{\textcolor{pastelteal!70!black}{#1}}
+
+% --- Highlight команды ---
+\newcommand{\hlblue}[1]{\colorbox{pastelblue!25}{#1}}
+\newcommand{\hlgreen}[1]{\colorbox{pastelgreen!25}{#1}}
+\newcommand{\hlpurple}[1]{\colorbox{pastelpurple!25}{#1}}
+\newcommand{\hlorange}[1]{\colorbox{pastelorange!25}{#1}}
+\newcommand{\hlteal}[1]{\colorbox{pastelteal!25}{#1}}
+
+% ============================================================================
+%  LISTINGS
+% ============================================================================
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{accentblue}\bfseries,
+  commentstyle=\color{softgray}\itshape,
+  stringstyle=\color{pastelgreen!60!black},
+  numbers=left,
+  numberstyle=\tiny\color{softgray},
+  numbersep=6pt,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{pastelpurple!40},
+  backgroundcolor=\color{pastelpurple!5},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=4,
+  captionpos=b
+}
+
+\lstdefinestyle{python}{
+  language=Python,
+  morekeywords={self,None,True,False,as,with,yield,async,await}
+}
+
+% ============================================================================
+%  ГРАФИКА
+% ============================================================================
+\graphicspath{{../figures/}}
+
+% ============================================================================
+\begin{document}
+
+% ============================================================================
+%  ТИТУЛЬНАЯ СТРАНИЦА
+% ============================================================================
+\begin{titlepage}
+\begin{tikzpicture}[remember picture, overlay]
+  % фоновые декоративные элементы
+  \fill[pastelblue!20] (current page.south west) rectangle (current page.north east);
+
+  \fill[pastelblue!35, opacity=0.6]
+    ([xshift=-2cm, yshift=-2cm]current page.north east)
+    circle (6cm);
+  \fill[pastelpurple!30, opacity=0.5]
+    ([xshift=3cm, yshift=3cm]current page.south west)
+    circle (5cm);
+  \fill[pastelgreen!25, opacity=0.5]
+    ([xshift=-4cm, yshift=5cm]current page.south east)
+    circle (3.5cm);
+  \fill[pastelorange!20, opacity=0.4]
+    ([xshift=6cm, yshift=-3cm]current page.north west)
+    circle (4cm);
+  \fill[pastelteal!25, opacity=0.4]
+    ([xshift=0cm, yshift=-6cm]current page.north)
+    circle (2.5cm);
+
+  % горизонтальные декоративные полосы
+  \draw[pastelpurple!60, line width=2pt]
+    ([yshift=-4cm]current page.north west) -- ([yshift=-4cm]current page.north east);
+  \draw[pastelblue!60, line width=1.5pt]
+    ([yshift=-4.3cm]current page.north west) -- ([yshift=-4.3cm]current page.north east);
+
+  \draw[pastelpurple!60, line width=2pt]
+    ([yshift=3.5cm]current page.south west) -- ([yshift=3.5cm]current page.south east);
+  \draw[pastelblue!60, line width=1.5pt]
+    ([yshift=3.2cm]current page.south west) -- ([yshift=3.2cm]current page.south east);
+
+  % декоративные нотные элементы
+  \node[opacity=0.08, font=\fontsize{80}{80}\selectfont, rotate=15, color=pastelpurple!50]
+    at ([xshift=5cm, yshift=-6cm]current page.north west) {$\sharp$};
+  \node[opacity=0.06, font=\fontsize{60}{60}\selectfont, rotate=-10, color=pastelblue!50]
+    at ([xshift=-3cm, yshift=6cm]current page.south east) {$\flat$};
+
+  % основной текстовый блок
+  \node[anchor=center] at ([yshift=5cm]current page.center) {
+    \color{softgray}\large Мастерская MusicTech --- Направление 1: Логика работы
+  };
+  \node[anchor=center] at ([yshift=3.5cm]current page.center) {
+    \color{sectioncolor}\fontsize{28}{34}\selectfont\bfseries Score-Following
+  };
+  \node[anchor=center, text width=12cm, align=center] at ([yshift=2.2cm]current page.center) {
+    \color{accentblue}\fontsize{16}{20}\selectfont
+    Алгоритмы отслеживания партитуры в реальном времени
+  };
+  \node[anchor=center] at ([yshift=0.8cm]current page.center) {
+    \color{pastelpurple!70!black}\rule{8cm}{0.8pt}
+  };
+  \node[anchor=center] at ([yshift=-0.3cm]current page.center) {
+    \color{sectioncolor}\Large Никита Новицкий
+  };
+  \node[anchor=center] at ([yshift=-1.2cm]current page.center) {
+    \color{softgray}\large Центральный Университет (Т-Банк)
+  };
+  \node[anchor=center] at ([yshift=-2.8cm]current page.center) {
+    \color{accentblue}\large 2026
+  };
+
+  % маленькие цветные кружки-декорации
+  \foreach \x/\y/\c/\r in {
+    -7/8/pastelblue/0.15,
+    -6.5/7.5/pastelpurple/0.1,
+    7/7/pastelgreen/0.12,
+    6.5/6.5/pastelorange/0.08,
+    -5/-7/pastelteal/0.13,
+    6/-6/pastelred/0.1,
+    0/9/pastelblue/0.08,
+    -3/8.5/pastelpurple/0.06
+  } {
+    \fill[\c!80] ([xshift=\x cm, yshift=\y cm]current page.center) circle (\r cm);
+  }
+\end{tikzpicture}
+\end{titlepage}
+
+% ============================================================================
+%  ОГЛАВЛЕНИЕ
+% ============================================================================
+\newpage
+\tableofcontents
+\newpage
+
+% ============================================================================
+%  РАЗДЕЛ 1: ВВЕДЕНИЕ
+% ============================================================================
+\section{Введение}
+\label{sec:intro}
+
+\subsection{Что такое score-following}
+
+\textbf{Score-following} (отслеживание партитуры) --- это задача автоматического
+определения текущей позиции живого исполнителя в нотном тексте (партитуре)
+в реальном времени. Система принимает на вход поток музыкальных событий ---
+MIDI-ноты или аудиосигнал --- и выдаёт соответствие между тем, что играет
+исполнитель, и тем, что написано в нотах.
+
+Живое исполнение никогда не совпадает с партитурой точно: музыкант допускает
+отклонения в темпе (\emph{rubato}), динамике, может пропускать ноты или
+добавлять орнаменты. Задача алгоритма --- быть устойчивым к этим отклонениям
+и \emph{в реальном времени} указывать, какую ноту исполнитель играет прямо сейчас.
+
+\subsection{Области применения}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Автоматический аккомпанемент.}
+    Компьютер <<следит>> за солистом и подстраивает оркестровую партию
+    под его темп. Первые такие системы появились в 1984~году.
+  \item \textbf{Автоматический переворот страниц.}
+    Электронный пульт (например, iPad с нотами) автоматически
+    перелистывает страницу, когда исполнитель доходит до конца.
+  \item \textbf{Визуализация в реальном времени.}
+    Подсветка текущей ноты в партитуре для зрителей, синхронизация
+    световых эффектов с музыкой.
+  \item \textbf{Музыкальное образование.}
+    Оценка точности исполнения ученика: где он ошибся, где отстал
+    от темпа, какие ноты пропустил.
+  \item \textbf{Интерактивные инсталляции.}
+    Генеративная графика и звук, реагирующие на живое исполнение.
+\end{enumerate}
+
+\subsection{Краткая история}
+
+Задача score-following была поставлена независимо двумя исследователями в 1984 году:
+\cblue{Роджер Данненберг} (Roger Dannenberg, Carnegie Mellon)~\cite{dannenberg1984}
+и \cblue{Барри Версо} (Barry Vercoe, MIT)~\cite{vercoe1984}. Оба предложили
+алгоритмы на основе динамического программирования для отслеживания MIDI-клавиатуры.
+
+В 1990--2000-х годах доминировали подходы на основе \emph{скрытых марковских
+моделей} (HMM): Orio \& Déchelle~\cite{orio2001}, Raphael~\cite{cont2006}.
+Параллельно развивались методы \emph{Dynamic Time Warping}
+(DTW): Dixon~\cite{dixon2005}, Müller~\cite{muller2007}.
+
+С 2018 года начали появляться нейросетевые подходы:
+Dorfer et al.~\cite{dorfer2018} применили свёрточные сети для audio-to-score
+alignment, а в 2025 году Henkel et al.~\cite{henkel2025} представили
+HeurMiT --- нейросетевой фреймворк для полифонических инструментов.
+
+\begin{defbox}[title={Постановка задачи score-following}]
+\textbf{Дано:}
+\begin{itemize}[leftmargin=1.5em]
+  \item Партитура $S = \{(p_i,\; t_i^{\mathrm{on}},\; t_i^{\mathrm{off}})\}_{i=1}^{N}$
+        --- последовательность нот с высотами $p_i$ и временными метками.
+  \item Поток событий исполнения
+        $P = \{(q_j,\; \tau_j^{\mathrm{on}},\; \tau_j^{\mathrm{off}})\}_{j=1}^{M}$,
+        поступающий в реальном времени.
+\end{itemize}
+\textbf{Найти:}
+функцию выравнивания $\varphi: \{1,\ldots,M\} \to \{1,\ldots,N\}$,
+такую что $\varphi(j)$ --- позиция в партитуре, соответствующая
+$j$-му событию исполнения.
+
+\textbf{Требования:}
+\begin{itemize}[leftmargin=1.5em]
+  \item \emph{Реальное время:} $\varphi(j)$ вычисляется, используя
+        только $p_1, \ldots, p_j$ (без знания будущих событий).
+  \item \emph{Монотонность:} если $j_1 < j_2$, то $\varphi(j_1) \leq \varphi(j_2)$.
+  \item \emph{Робастность:} устойчивость к ошибкам, пропускам, rubato.
+\end{itemize}
+\end{defbox}
+
+\subsection{Pipeline системы score-following}
+
+\begin{center}
+\begin{tikzpicture}[
+  box/.style={
+    draw, rounded corners=3pt, minimum height=1.1cm, minimum width=2.8cm,
+    font=\small\bfseries, text=sectioncolor, text width=2.4cm, align=center,
+    line width=0.6pt
+  },
+  arr/.style={-{Stealth[length=6pt]}, line width=0.8pt, color=accentblue!80}
+]
+  \node[box, fill=pastelblue!30, draw=pastelblue!60!black] (midi) at (0,0) {MIDI вход};
+  \node[box, fill=pastelgreen!30, draw=pastelgreen!60!black] (feat) at (3.6,0) {Извлечение признаков};
+  \node[box, fill=pastelpurple!30, draw=pastelpurple!60!black] (algo) at (7.5,0) {Алгоритм выравнивания};
+  \node[box, fill=pastelorange!30, draw=pastelorange!60!black] (pos)  at (11.4,0) {Позиция в партитуре};
+  \node[box, fill=pastelteal!30, draw=pastelteal!60!black] (out)  at (15,0) {Аккомпа\-немент};
+
+  \draw[arr] (midi) -- (feat);
+  \draw[arr] (feat) -- (algo);
+  \draw[arr] (algo) -- (pos);
+  \draw[arr] (pos)  -- (out);
+
+  \node[above=0.15cm of midi, font=\scriptsize\color{softgray}] {Клавиатура};
+  \node[above=0.15cm of feat, font=\scriptsize\color{softgray}] {Pitch, velocity};
+  \node[above=0.15cm of algo, font=\scriptsize\color{softgray}] {DTW / HMM / OLTW};
+  \node[above=0.15cm of pos, font=\scriptsize\color{softgray}] {Нота $\varphi(j)$};
+  \node[above=0.15cm of out, font=\scriptsize\color{softgray}] {Синтезатор};
+\end{tikzpicture}
+\end{center}
+
+
+% ============================================================================
+%  РАЗДЕЛ 2: MIDI И МУЗЫКАЛЬНЫЕ ОСНОВЫ
+% ============================================================================
+\section{MIDI и музыкальные основы}
+\label{sec:midi}
+
+\subsection{Протокол MIDI}
+
+MIDI (\emph{Musical Instrument Digital Interface}) --- это стандарт цифровой
+передачи музыкальных данных, разработанный в 1983~году. В отличие от аудиосигнала,
+MIDI передаёт не звуковую волну, а \emph{символические события}: какую ноту нажали,
+с какой силой, когда отпустили.
+
+Основные типы сообщений, релевантные для score-following:
+
+\begin{itemize}[leftmargin=2em]
+  \item \hlblue{\texttt{Note On} (\texttt{0x90})} --- нажатие клавиши.
+        Содержит номер ноты (pitch) и силу нажатия (velocity).
+  \item \hlblue{\texttt{Note Off} (\texttt{0x80})} --- отпускание клавиши.
+        Содержит номер ноты и velocity отпускания (обычно~0).
+  \item \texttt{Control Change} (\texttt{0xB0}) --- педаль, модуляция и др.
+  \item \texttt{Program Change} (\texttt{0xC0}) --- смена инструмента.
+\end{itemize}
+
+\begin{defbox}[title={MIDI-событие}]
+Каждое MIDI-событие представляется кортежем:
+\[
+  e = (\textit{type},\; \textit{pitch},\; \textit{velocity},\; \textit{timestamp})
+\]
+где:
+\begin{itemize}[leftmargin=1.5em]
+  \item $\textit{type} \in \{\texttt{note\_on},\; \texttt{note\_off}\}$
+  \item $\textit{pitch} \in \{0, 1, \ldots, 127\}$ --- номер ноты по стандарту MIDI
+  \item $\textit{velocity} \in \{0, 1, \ldots, 127\}$ --- сила нажатия
+  \item $\textit{timestamp} \in \mathbb{R}_{\geq 0}$ --- время в секундах
+\end{itemize}
+\end{defbox}
+
+\subsection{Таблица нот MIDI}
+
+\begin{center}
+\begin{tabular}{lccccccccccccc}
+\toprule
+\textbf{Нота} & C3 & D3 & E3 & F3 & G3 & A3 & B3 & C4 & D4 & E4 & F4 & G4 & A4 \\
+\midrule
+\textbf{MIDI} & 48 & 50 & 52 & 53 & 55 & 57 & 59 & 60 & 62 & 64 & 65 & 67 & 69 \\
+\bottomrule
+\end{tabular}
+\captionof{table}{Соответствие нот и номеров MIDI. C4 (<<до>> первой октавы) = 60.}
+\label{tab:midi_notes}
+\end{center}
+
+\subsection{Клавиатура и MIDI-номера}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.85]
+  % белые клавиши
+  \foreach \i/\note/\midi in {
+    0/C4/60, 1/D4/62, 2/E4/64, 3/F4/65, 4/G4/67, 5/A4/69, 6/B4/71
+  } {
+    \draw[fill=white, draw=sectioncolor!60, line width=0.5pt]
+      (\i*1.4, 0) rectangle ++(1.3, 4);
+    \node[font=\scriptsize\bfseries, color=sectioncolor] at (\i*1.4+0.65, 0.5) {\note};
+    \node[font=\tiny, color=accentblue] at (\i*1.4+0.65, 1.2) {\midi};
+  }
+  % чёрные клавиши
+  \foreach \i/\note/\midi in {
+    0/C\#/61, 1/D\#/63, 3/F\#/66, 4/G\#/68, 5/A\#/70
+  } {
+    \draw[fill=sectioncolor!85, draw=sectioncolor, line width=0.5pt]
+      (\i*1.4+0.85, 1.8) rectangle ++(0.9, 2.2);
+    \node[font=\tiny\bfseries, color=white] at (\i*1.4+1.3, 2.5) {\midi};
+  }
+\end{tikzpicture}
+\end{center}
+
+\subsection{Представление партитуры и исполнения}
+
+Для алгоритмов score-following нам нужны два формальных представления:
+
+\begin{defbox}[title={Партитура (Score)}]
+Последовательность нотных событий:
+\[
+  S = \bigl\{(p_i,\; t_i^{\mathrm{on}},\; t_i^{\mathrm{off}})\bigr\}_{i=1}^{N}
+\]
+где $p_i \in \{0,\ldots,127\}$ --- высота $i$-й ноты, $t_i^{\mathrm{on}}$
+и $t_i^{\mathrm{off}}$ --- номинальные времена начала и конца ноты по партитуре.
+$N$ --- общее количество нот в произведении.
+\end{defbox}
+
+\begin{defbox}[title={Исполнение (Performance)}]
+Последовательность реальных событий от исполнителя:
+\[
+  P = \bigl\{(q_j,\; \tau_j^{\mathrm{on}},\; \tau_j^{\mathrm{off}})\bigr\}_{j=1}^{M}
+\]
+где $q_j$ --- реально сыгранная высота, $\tau_j^{\mathrm{on}}$ и $\tau_j^{\mathrm{off}}$
+--- реальные времена. $M$ может отличаться от $N$: исполнитель может пропускать
+или добавлять ноты.
+\end{defbox}
+
+
+% ============================================================================
+%  РАЗДЕЛ 3: ФОРМАЛИЗАЦИЯ ЗАДАЧИ
+% ============================================================================
+\section{Формализация задачи}
+\label{sec:formalization}
+
+\subsection{Функция выравнивания}
+
+\begin{formulabox}[title={Функция выравнивания}]
+Задача score-following --- построить отображение:
+\[
+  \varphi: \{1, \ldots, M\} \longrightarrow \{1, \ldots, N\}
+\]
+которое сопоставляет каждому событию исполнения $j$ позицию
+в партитуре $\varphi(j)$.
+\end{formulabox}
+
+\subsection{Ограничение монотонности}
+
+Ключевое ограничение: исполнитель играет партитуру <<вперёд>>
+(с возможными пропусками, но без возврата назад):
+\[
+  j_1 < j_2 \implies \varphi(j_1) \leq \varphi(j_2)
+\]
+
+Равенство $\varphi(j_1) = \varphi(j_2)$ допускается: несколько
+событий исполнения могут относиться к одной ноте партитуры
+(например, повторные нажатия, трели, орнаменты).
+
+\subsection{Функция стоимости}
+
+\begin{formulabox}[title={Функция стоимости (cost function)}]
+Для сравнения ноты партитуры $s_i$ и события исполнения $p_j$
+определим локальную стоимость:
+\[
+  d(s_i, p_j) = |p_i - q_j|
+\]
+где $p_i$ --- pitch ноты в партитуре, $q_j$ --- pitch сыгранной ноты.
+
+Если pitch совпадает: $d = 0$. Полутоновая ошибка: $d = 1$.
+Октавная ошибка: $d = 12$.
+\end{formulabox}
+
+\subsection{Оптимальное выравнивание}
+
+Оптимальное выравнивание минимизирует суммарную стоимость:
+
+\begin{formulabox}[title={Оптимальное выравнивание}]
+\[
+  \varphi^* = \arg\min_{\varphi} \sum_{j=1}^{M} d\bigl(s_{\varphi(j)},\; p_j\bigr)
+\]
+при ограничении монотонности $\varphi$.
+\end{formulabox}
+
+\subsection{Online vs Offline}
+
+Принципиальное различие двух постановок:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Offline:} доступно всё исполнение $P$ целиком.
+        Можно вычислить глобально оптимальное $\varphi^*$.
+        Применение: анализ записей, разметка данных.
+  \item \textbf{Online:} в момент $j$ доступны только $p_1, \ldots, p_j$.
+        Нужно выдать $\varphi(j)$ немедленно, без знания будущих событий.
+        Применение: живой аккомпанемент, переворот страниц.
+\end{itemize}
+
+В проекте MusicTech нас интересует именно \emph{online}-постановка.
+
+\subsection{Визуализация выравнивания}
+
+\begin{center}
+\begin{tikzpicture}[
+  note/.style={circle, draw, minimum size=0.7cm, font=\small\bfseries, line width=0.5pt},
+  arr/.style={-{Stealth[length=5pt]}, color=accentblue!70, line width=0.6pt, dashed}
+]
+  % партитура (верхний ряд)
+  \node[font=\small\bfseries\color{softgray}] at (-1.5, 1.5) {Партитура:};
+  \foreach \i/\p in {1/C4, 2/E4, 3/G4, 4/A4, 5/C5, 6/E5} {
+    \node[note, fill=pastelblue!30, draw=pastelblue!60!black] (s\i) at (\i*1.6, 1.5) {\p};
+  }
+
+  % исполнение (нижний ряд)
+  \node[font=\small\bfseries\color{softgray}] at (-1.5, -0.5) {Исполнение:};
+  \foreach \j/\q in {1/C4, 2/E4, 3/E4, 4/G4, 5/A4, 6/B4, 7/C5, 8/E5} {
+    \node[note, fill=pastelorange!30, draw=pastelorange!60!black] (p\j) at (\j*1.3-0.2, -0.5) {\q};
+  }
+
+  % стрелки выравнивания
+  \draw[arr] (p1) -- (s1);
+  \draw[arr] (p2) -- (s2);
+  \draw[arr] (p3) -- (s2);
+  \draw[arr] (p4) -- (s3);
+  \draw[arr] (p5) -- (s4);
+  \draw[arr] (p6) -- (s4);
+  \draw[arr] (p7) -- (s5);
+  \draw[arr] (p8) -- (s6);
+
+  \node[font=\scriptsize\color{softgray}, anchor=north west, text width=3.5cm] at (11.5, 1)
+    {$\varphi$: $1{\to}1$, $2{\to}2$, $3{\to}2$, $4{\to}3$, $5{\to}4$, $6{\to}4$, $7{\to}5$, $8{\to}6$};
+\end{tikzpicture}
+\end{center}
+
+На диаграмме видно, что события~3 и~6 исполнения связываются с
+нотами~2 и~4 партитуры соответственно (повторные нажатия).
+Нота B4 (событие~6) выравнивается к A4 --- это ошибка исполнителя,
+и алгоритм выбирает ближайшую ноту партитуры.
+
+
+% ============================================================================
+%  РАЗДЕЛ 4: DYNAMIC TIME WARPING
+% ============================================================================
+\section{Dynamic Time Warping (DTW)}
+\label{sec:dtw}
+
+\subsection{Определение}
+
+\begin{defbox}[title={Dynamic Time Warping}]
+DTW (\emph{Dynamic Time Warping}, динамическая трансформация временной шкалы)~\cite{sakoe1978}
+--- это алгоритм поиска оптимального выравнивания двух временных
+последовательностей, допускающий нелинейные деформации по времени.
+
+Даны две последовательности:
+\[
+  X = (x_1, x_2, \ldots, x_N), \quad Y = (y_1, y_2, \ldots, y_M)
+\]
+DTW находит путь через матрицу стоимости, минимизирующий
+суммарное расстояние между выровненными элементами.
+\end{defbox}
+
+\subsection{Матрица локальной стоимости}
+
+Для каждой пары $(i,j)$ вычисляем локальную стоимость:
+\[
+  C(i,j) = d(x_i, y_j)
+\]
+В случае MIDI-нот: $d(x_i, y_j) = |p_i - q_j|$ (разница pitch).
+Для audio: евклидово расстояние между спектральными векторами.
+
+Матрица $C$ имеет размер $N \times M$.
+
+\subsection{Рекурсия DTW}
+
+\begin{formulabox}[title={Рекурсия DTW}]
+Матрица накопленной стоимости $D$ вычисляется рекурсивно:
+\[
+  D(i,j) = C(i,j) + \min
+  \begin{cases}
+    D(i-1,\; j)   & \text{(вставка)} \\
+    D(i,\; j-1)   & \text{(удаление)} \\
+    D(i-1,\; j-1) & \text{(совпадение)}
+  \end{cases}
+\]
+с граничными условиями:
+\[
+  D(0,0) = 0, \quad D(i,0) = \infty \;\forall\, i > 0, \quad D(0,j) = \infty \;\forall\, j > 0
+\]
+\end{formulabox}
+
+Три варианта перехода имеют интуитивный смысл:
+\begin{itemize}[leftmargin=2em]
+  \item $D(i-1, j-1) \to D(i,j)$: диагональный шаг --- следующая нота
+        партитуры сопоставляется со следующей нотой исполнения.
+  \item $D(i-1, j) \to D(i,j)$: вертикальный шаг --- нота партитуры
+        пропущена исполнителем.
+  \item $D(i, j-1) \to D(i,j)$: горизонтальный шаг --- исполнитель
+        сыграл лишнюю ноту (орнамент, ошибка).
+\end{itemize}
+
+\subsection{Оптимальный путь}
+
+Итоговая стоимость выравнивания: $D(N, M)$.
+Оптимальный путь $W = (w_1, w_2, \ldots, w_K)$, где $w_k = (i_k, j_k)$,
+находится обратным проходом (\emph{backtracking}) от $(N,M)$ к $(1,1)$:
+на каждом шаге выбираем предшественника с минимальным значением $D$.
+
+\subsection{Псевдокод DTW}
+
+\begin{algbox}[title={Алгоритм DTW}]
+\begin{lstlisting}[style=python, numbers=none]
+def dtw(X, Y):
+    N, M = len(X), len(Y)
+    D = matrix(N+1, M+1, fill=inf)
+    D[0][0] = 0
+
+    for i in range(1, N+1):
+        for j in range(1, M+1):
+            cost = abs(X[i-1] - Y[j-1])
+            D[i][j] = cost + min(
+                D[i-1][j],      # insertion
+                D[i][j-1],      # deletion
+                D[i-1][j-1]     # match
+            )
+
+    # backtracking
+    path = [(N, M)]
+    i, j = N, M
+    while i > 1 or j > 1:
+        candidates = []
+        if i > 1: candidates.append((D[i-1][j], i-1, j))
+        if j > 1: candidates.append((D[i][j-1], i, j-1))
+        if i > 1 and j > 1:
+            candidates.append((D[i-1][j-1], i-1, j-1))
+        _, i, j = min(candidates)
+        path.append((i, j))
+
+    return D[N][M], reversed(path)
+\end{lstlisting}
+\end{algbox}
+
+\subsection{Сложность}
+
+\begin{formulabox}[title={Сложность DTW}]
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Время:} $O(N \cdot M)$
+  \item \textbf{Память:} $O(N \cdot M)$
+\end{itemize}
+Для произведения из $N = 1000$ нот и исполнения из $M = 1100$ нот:
+$\approx 1{,}1 \cdot 10^6$ операций --- мгновенно для offline.
+\end{formulabox}
+
+\subsection{Ограничение Sakoe--Chiba}
+
+Для ускорения DTW можно ограничить область вычислений полосой
+шириной $R$ вдоль диагонали~\cite{sakoe1978}:
+\[
+  |i - j| \leq R
+\]
+Это даёт сложность $O(N \cdot R)$ вместо $O(N \cdot M)$. Параметр $R$
+выбирается исходя из максимального ожидаемого отклонения темпа.
+
+\subsection{Визуализация: матрица стоимости и оптимальный путь}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.75]
+  % матрица 6x6
+  \def\data{
+    {0, 2, 5, 7, 12, 12},
+    {2, 0, 3, 5, 10, 10},
+    {4, 2, 0, 2, 7,  7},
+    {5, 3, 2, 0, 5,  5},
+    {7, 5, 3, 2, 0,  0},
+    {12,10,7, 5, 0,  0}
+  }
+
+  % нарисовать ячейки с цветом по значению
+  \foreach \i in {0,...,5} {
+    \foreach \j in {0,...,5} {
+      \pgfmathsetmacro{\val}{{\data}[\i][\j]}
+      \pgfmathsetmacro{\intensity}{min(100, \val*7)}
+      \fill[pastelblue!\intensity!white] (\j, 5-\i) rectangle ++(1,1);
+      \draw[softgray!40] (\j, 5-\i) rectangle ++(1,1);
+      \node[font=\tiny] at (\j+0.5, 5.5-\i) {\pgfmathprintnumber[fixed]{\val}};
+    }
+  }
+
+  % оптимальный путь
+  \draw[red!70!black, line width=1.8pt, -{Stealth[length=5pt]}]
+    (0.5, 5.5) -- (1.5, 4.5) -- (2.5, 3.5) -- (3.5, 2.5) -- (4.5, 1.5) -- (5.5, 0.5);
+
+  % подписи
+  \node[font=\small\bfseries, color=sectioncolor] at (3, -0.5) {Исполнение $Y$};
+  \node[font=\small\bfseries, color=sectioncolor, rotate=90] at (-0.7, 3) {Партитура $X$};
+
+  % номера
+  \foreach \j/\note in {0/C4, 1/D4, 2/F4, 3/G4, 4/C5, 5/C5} {
+    \node[font=\tiny\color{accentblue}] at (\j+0.5, 6.3) {\note};
+  }
+  \foreach \i/\note in {0/C4, 1/D4, 2/F4, 3/G4, 4/C5, 5/C5} {
+    \node[font=\tiny\color{accentblue}] at (-0.3, 5.5-\i) {\note};
+  }
+\end{tikzpicture}
+\end{center}
+
+Красная линия --- оптимальный путь. Тёмные ячейки --- высокая стоимость,
+светлые --- низкая. Путь проходит по <<долине>> минимальных значений.
+
+\subsection{Числовой пример}
+
+\begin{exbox}[title={DTW: числовой пример}]
+Пусть партитура содержит 5 нот: $X = (60, 64, 67, 72, 76)$ (C4, E4, G4, C5, E5).
+
+Исполнитель сыграл: $Y = (60, 63, 67, 67, 72, 76)$ (ошибка во второй ноте:
+63 вместо 64, повторение G4).
+
+\medskip
+\textbf{Шаг 1.} Матрица локальной стоимости $C(i,j) = |x_i - y_j|$:
+
+\begin{center}
+\begin{tabular}{c|cccccc}
+  & $y_1{=}60$ & $y_2{=}63$ & $y_3{=}67$ & $y_4{=}67$ & $y_5{=}72$ & $y_6{=}76$ \\
+\midrule
+$x_1{=}60$ & 0 & 3 & 7 & 7 & 12 & 16 \\
+$x_2{=}64$ & 4 & 1 & 3 & 3 & 8  & 12 \\
+$x_3{=}67$ & 7 & 4 & 0 & 0 & 5  & 9 \\
+$x_4{=}72$ & 12& 9 & 5 & 5 & 0  & 4 \\
+$x_5{=}76$ & 16& 13& 9 & 9 & 4  & 0 \\
+\end{tabular}
+\end{center}
+
+\textbf{Шаг 2.} Заполняем $D(i,j)$ по рекурсии:
+
+$D(1,1) = 0$,\quad $D(1,2) = 0 + 3 = 3$,\quad $D(2,2) = 1 + \min(4, 3, 0) = 1$\quad и т.д.
+
+\textbf{Шаг 3.} Оптимальный путь: $(1,1) \to (2,2) \to (3,3) \to (3,4) \to (4,5) \to (5,6)$.
+
+Итоговая стоимость: $D(5,6) = 0 + 1 + 0 + 0 + 0 + 0 = 1$.
+
+Выравнивание: $\varphi = (1, 2, 3, 3, 4, 5)$ --- третья и четвёртая ноты
+исполнения обе привязаны к $x_3 = \text{G4}$.
+\end{exbox}
+
+\begin{warnbox}[title={Ограничения DTW}]
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Offline-алгоритм:} требует полного исполнения для вычисления.
+        Не применим для real-time score-following напрямую.
+  \item \textbf{Квадратичная сложность:} $O(NM)$ может быть слишком медленно
+        для длинных произведений в реальном времени.
+  \item \textbf{Нет вероятностной модели:} DTW не моделирует неопределённость
+        исполнителя, не даёт распределения вероятностей по позициям.
+\end{enumerate}
+\end{warnbox}
+
+
+% ============================================================================
+%  РАЗДЕЛ 5: ONLINE TIME WARPING
+% ============================================================================
+\section{Online Time Warping (OLTW)}
+\label{sec:oltw}
+
+\subsection{Определение}
+
+\begin{defbox}[title={Online Time Warping}]
+OLTW (\emph{Online Time Warping})~\cite{dixon2005} --- инкрементальная
+версия DTW, обрабатывающая исполнение событие за событием.
+
+При поступлении нового наблюдения $y_j$ алгоритм:
+\begin{enumerate}[leftmargin=1.5em]
+  \item Вычисляет новый столбец матрицы $D$.
+  \item Продлевает оптимальный путь на один шаг.
+  \item Выдаёт текущую позицию в партитуре $\varphi(j)$.
+\end{enumerate}
+\end{defbox}
+
+\subsection{Инкрементальное обновление}
+
+При поступлении $y_j$ вычисляем $j$-й столбец $D$:
+
+\begin{formulabox}[title={OLTW: обновление столбца}]
+Для каждого $i = 1, \ldots, N$:
+\[
+  D(i,j) = C(i,j) + \min\bigl\{D(i-1,j),\; D(i,j-1),\; D(i-1,j-1)\bigr\}
+\]
+где $C(i,j) = |x_i - y_j|$.
+
+Столбец $D(\cdot, j-1)$ уже вычислен на предыдущем шаге.
+\end{formulabox}
+
+\subsection{Механизм RunCount}
+
+Ключевая проблема online-выравнивания: алгоритм может <<застрять>>
+на одной ноте партитуры (бесконечно продлевая горизонтальный шаг)
+или наоборот <<убежать>> вперёд. Dixon~\cite{dixon2005} предложил
+механизм \textbf{RunCount}:
+
+\begin{formulabox}[title={RunCount}]
+$\mathrm{RunCount}$ --- счётчик последовательных шагов в одном направлении.
+\begin{itemize}[leftmargin=1.5em]
+  \item Если текущий шаг в том же направлении, что предыдущий:
+        $\mathrm{RunCount} \gets \mathrm{RunCount} + 1$
+  \item Иначе: $\mathrm{RunCount} \gets 0$
+\end{itemize}
+Если $\mathrm{RunCount} > \mathrm{MaxRun}$, принудительно выбираем
+диагональный шаг.
+
+Типичное значение: $\mathrm{MaxRun} = 3\text{--}5$.
+\end{formulabox}
+
+\subsection{Псевдокод OLTW}
+
+\begin{algbox}[title={Алгоритм OLTW}]
+\begin{lstlisting}[style=python, numbers=none]
+class OLTW:
+    def __init__(self, score, max_run=3):
+        self.score = score
+        self.N = len(score)
+        self.max_run = max_run
+        self.position = 0
+        self.run_count = 0
+        self.prev_direction = None
+        self.prev_col = [inf] * (self.N + 1)
+        self.prev_col[0] = 0
+
+    def process(self, observation):
+        curr_col = [inf] * (self.N + 1)
+        backptr = [None] * (self.N + 1)
+
+        for i in range(1, self.N + 1):
+            cost = abs(self.score[i-1] - observation)
+            options = [
+                (self.prev_col[i],   "horiz"),
+                (curr_col[i-1],      "vert"),
+                (self.prev_col[i-1], "diag"),
+            ]
+            best_val, best_dir = min(options)
+            curr_col[i] = cost + best_val
+            backptr[i] = best_dir
+
+        direction = backptr[self.position + 1]
+        if direction == self.prev_direction:
+            self.run_count += 1
+        else:
+            self.run_count = 0
+
+        if self.run_count > self.max_run:
+            direction = "diag"
+            self.run_count = 0
+
+        if direction in ("diag", "vert"):
+            self.position = min(self.position + 1,
+                                self.N - 1)
+        self.prev_direction = direction
+        self.prev_col = curr_col
+        return self.position
+\end{lstlisting}
+\end{algbox}
+
+\subsection{Сложность}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{На каждое новое наблюдение:} $O(N)$ --- один проход по столбцу.
+  \item \textbf{Память:} $O(N)$ --- храним только два столбца (текущий и предыдущий).
+  \item \textbf{Общая сложность:} $O(NM)$, но распределённая во времени:
+        каждый шаг занимает $O(N)$, что приемлемо для real-time при $N < 10\,000$.
+\end{itemize}
+
+\subsection{Визуализация: пошаговое построение пути}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.55]
+  % Panel 1: t=3
+  \begin{scope}[xshift=0cm]
+    \draw[softgray!30] (0,0) grid (3,6);
+    \draw[sectioncolor!50, line width=0.5pt] (0,0) rectangle (3,6);
+    \draw[pastelgreen!70!black, line width=2pt, -{Stealth[length=5pt]}]
+      (0.5,5.5) -- (1.5,4.5) -- (2.5,3.5);
+    \fill[pastelgreen!40] (0.5,5.5) circle (0.2);
+    \fill[pastelgreen!40] (1.5,4.5) circle (0.2);
+    \fill[pastelgreen!60] (2.5,3.5) circle (0.2);
+    \node[font=\small\bfseries, color=sectioncolor] at (1.5, -0.7) {$t = 3$};
+    \node[font=\scriptsize, color=softgray] at (1.5, -1.3) {3 события};
+  \end{scope}
+
+  % Panel 2: t=6
+  \begin{scope}[xshift=5cm]
+    \draw[softgray!30] (0,0) grid (6,6);
+    \draw[sectioncolor!50, line width=0.5pt] (0,0) rectangle (6,6);
+    \draw[pastelblue!70!black, line width=2pt, -{Stealth[length=5pt]}]
+      (0.5,5.5) -- (1.5,4.5) -- (2.5,3.5) -- (3.5,3.5) -- (4.5,2.5) -- (5.5,1.5);
+    \fill[pastelblue!40] (0.5,5.5) circle (0.2);
+    \fill[pastelblue!40] (1.5,4.5) circle (0.2);
+    \fill[pastelblue!40] (2.5,3.5) circle (0.2);
+    \fill[pastelblue!40] (3.5,3.5) circle (0.2);
+    \fill[pastelblue!40] (4.5,2.5) circle (0.2);
+    \fill[pastelblue!60] (5.5,1.5) circle (0.2);
+    \node[font=\small\bfseries, color=sectioncolor] at (3, -0.7) {$t = 6$};
+    \node[font=\scriptsize, color=softgray] at (3, -1.3) {6 событий};
+  \end{scope}
+
+  % Panel 3: t=9
+  \begin{scope}[xshift=13cm]
+    \draw[softgray!30] (0,0) grid (9,6);
+    \draw[sectioncolor!50, line width=0.5pt] (0,0) rectangle (9,6);
+    \draw[pastelpurple!70!black, line width=2pt, -{Stealth[length=5pt]}]
+      (0.5,5.5) -- (1.5,4.5) -- (2.5,3.5) -- (3.5,3.5) -- (4.5,2.5)
+      -- (5.5,1.5) -- (6.5,1.5) -- (7.5,0.5) -- (8.5,0.5);
+    \foreach \x/\y in {0.5/5.5, 1.5/4.5, 2.5/3.5, 3.5/3.5, 4.5/2.5,
+                        5.5/1.5, 6.5/1.5, 7.5/0.5} {
+      \fill[pastelpurple!40] (\x,\y) circle (0.2);
+    }
+    \fill[pastelpurple!60] (8.5,0.5) circle (0.2);
+    \node[font=\small\bfseries, color=sectioncolor] at (4.5, -0.7) {$t = 9$};
+    \node[font=\scriptsize, color=softgray] at (4.5, -1.3) {9 событий};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+Три панели показывают рост пути OLTW по мере поступления новых событий.
+Горизонтальные сегменты --- исполнитель задерживается на одной ноте,
+диагональные --- синхронное продвижение.
+
+\subsection{Сравнение DTW и OLTW}
+
+\begin{center}
+\begin{tcolorbox}[
+  enhanced, breakable,
+  colback=pastelteal!8,
+  colframe=pastelteal!50!black,
+  sharp corners,
+  boxrule=0.6pt,
+  title={\bfseries Сравнение DTW и OLTW},
+  fonttitle=\bfseries,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm},
+  boxed title style={colback=pastelteal!50!black, sharp corners}
+]
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\textbf{Критерий} & \textbf{DTW} & \textbf{OLTW} \\
+\midrule
+Режим работы & Offline & Online (real-time) \\
+Сложность (время) & $O(NM)$ & $O(N)$ на событие \\
+Сложность (память) & $O(NM)$ & $O(N)$ \\
+Оптимальность & Глобальный оптимум & Локально оптимальный \\
+Устойчивость к rubato & Высокая & Средняя (RunCount) \\
+Латентность & Нулевая (offline) & $< 10$\,мс \\
+Применение & Анализ записей & Живой аккомпанемент \\
+\bottomrule
+\end{tabularx}
+\end{tcolorbox}
+\end{center}
+
+
+% ============================================================================
+%  РАЗДЕЛ 6: СКРЫТЫЕ МАРКОВСКИЕ МОДЕЛИ
+% ============================================================================
+\section{Скрытые марковские модели (HMM)}
+\label{sec:hmm}
+
+\subsection{HMM для score-following}
+
+\begin{defbox}[title={HMM для score-following}]
+Скрытая марковская модель (Hidden Markov Model, HMM)~\cite{rabiner1989}
+моделирует score-following как задачу декодирования скрытых состояний:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Скрытые состояния} $s_1, s_2, \ldots, s_N$ --- позиции
+        в партитуре (каждая нота --- отдельное состояние).
+  \item \textbf{Наблюдения} $o_1, o_2, \ldots, o_T$ --- MIDI-события
+        от исполнителя.
+  \item \textbf{Параметры модели} $\lambda = (A, B, \pi)$.
+\end{itemize}
+\end{defbox}
+
+\subsection{Параметры модели}
+
+\subsubsection{Матрица переходов $A$}
+
+Матрица $A = \{a_{ij}\}$ задаёт вероятности перехода между состояниями:
+\[
+  a_{ij} = P(s_t = j \mid s_{t-1} = i)
+\]
+
+Для score-following матрица имеет ленточную структуру:
+
+\begin{formulabox}[title={Матрица переходов}]
+\[
+  a_{ij} =
+  \begin{cases}
+    p_{\text{stay}}    & \text{если } j = i \quad\quad\;\;\, \text{(остаёмся на ноте)} \\
+    p_{\text{advance}} & \text{если } j = i + 1 \quad \text{(переход к следующей)} \\
+    p_{\text{skip}}    & \text{если } j = i + 2 \quad \text{(пропуск одной ноты)} \\
+    0                  & \text{иначе}
+  \end{cases}
+\]
+Типичные значения: $p_{\text{stay}} \approx 0.3$, $p_{\text{advance}} \approx 0.6$,
+$p_{\text{skip}} \approx 0.1$.
+\end{formulabox}
+
+Это отражает реальное поведение исполнителя:
+\begin{itemize}[leftmargin=2em]
+  \item С вероятностью 0.3 длится текущая нота (долгие ноты, фермата).
+  \item С вероятностью 0.6 переход к следующей ноте.
+  \item С вероятностью 0.1 пропуск ноты (ошибка, сокращение).
+\end{itemize}
+
+\subsubsection{Функция эмиссии $B$}
+
+Вероятность наблюдения $o_t$ в состоянии $s_t = i$:
+
+\begin{formulabox}[title={Функция эмиссии}]
+\[
+  b_i(o_t) = P(o_t \mid s_t = i) = \mathcal{N}\bigl(o_t;\; \text{pitch}_i,\; \sigma^2\bigr)
+\]
+где $\text{pitch}_i$ --- номинальная высота $i$-й ноты партитуры,
+$\sigma$ --- стандартное отклонение (обычно $\sigma \approx 1\text{--}3$
+полутона).
+
+Гауссова эмиссия обеспечивает:
+\begin{itemize}[leftmargin=1.5em]
+  \item Максимальная вероятность при точном совпадении pitch.
+  \item Плавное убывание при полутоновых ошибках.
+  \item Малая вероятность при октавных ошибках ($|o_t - \text{pitch}_i| = 12$).
+\end{itemize}
+\end{formulabox}
+
+\subsubsection{Начальное распределение $\pi$}
+
+\[
+  \pi_i = P(s_1 = i) =
+  \begin{cases}
+    1 & \text{если } i = 1 \\
+    0 & \text{иначе}
+  \end{cases}
+\]
+Исполнение начинается с первой ноты партитуры.
+
+\subsection{Алгоритм Forward}
+
+Алгоритм Forward вычисляет вероятность наблюдения последовательности
+$o_1, \ldots, o_t$ при нахождении в состоянии $j$ в момент $t$:
+
+\begin{formulabox}[title={Forward-переменные}]
+\textbf{Инициализация:}
+\[
+  \alpha_1(i) = \pi_i \cdot b_i(o_1)
+\]
+\textbf{Рекурсия:} для $t = 2, \ldots, T$:
+\[
+  \alpha_t(j) = \left[\sum_{i=1}^{N} \alpha_{t-1}(i) \cdot a_{ij}\right] \cdot b_j(o_t)
+\]
+\textbf{Текущая позиция:}
+\[
+  s_t^* = \arg\max_{j} \alpha_t(j)
+\]
+\end{formulabox}
+
+Forward-алгоритм можно использовать для online score-following:
+при каждом новом наблюдении $o_t$ обновляем вектор $\alpha_t$
+за $O(N^2)$ операций (или $O(N)$, учитывая ленточную структуру $A$).
+
+\subsection{Алгоритм Viterbi}
+
+Алгоритм Viterbi находит \emph{наиболее вероятную последовательность состояний}:
+
+\begin{formulabox}[title={Алгоритм Viterbi}]
+\textbf{Инициализация:}
+\[
+  \delta_1(i) = \pi_i \cdot b_i(o_1), \qquad \psi_1(i) = 0
+\]
+\textbf{Рекурсия:} для $t = 2, \ldots, T$:
+\[
+  \delta_t(j) = \max_{i} \bigl[\delta_{t-1}(i) \cdot a_{ij}\bigr] \cdot b_j(o_t)
+\]
+\[
+  \psi_t(j) = \arg\max_{i} \bigl[\delta_{t-1}(i) \cdot a_{ij}\bigr]
+\]
+\textbf{Обратный проход (backtracking):}
+\[
+  s_T^* = \arg\max_{i} \delta_T(i), \qquad s_t^* = \psi_{t+1}(s_{t+1}^*) \quad \text{для } t = T{-}1, \ldots, 1
+\]
+\end{formulabox}
+
+\subsection{Диаграмма состояний HMM}
+
+\begin{center}
+\begin{tikzpicture}[
+  state/.style={
+    circle, draw=pastelpurple!60!black, fill=pastelpurple!20,
+    minimum size=1.2cm, font=\small\bfseries, line width=0.6pt
+  },
+  trans/.style={-{Stealth[length=5pt]}, line width=0.6pt},
+  obs/.style={
+    rectangle, draw=pastelorange!60!black, fill=pastelorange!15,
+    minimum height=0.7cm, minimum width=0.9cm, font=\scriptsize, rounded corners=2pt
+  },
+  emit/.style={-{Stealth[length=4pt]}, line width=0.4pt, dashed, color=pastelorange!60!black}
+]
+  % состояния
+  \foreach \i/\note in {1/C4, 2/E4, 3/G4, 4/A4, 5/C5} {
+    \node[state] (s\i) at (\i*2.5, 2) {$s_\i$};
+    \node[font=\tiny\color{accentblue}] at (\i*2.5, 2.9) {\note};
+  }
+
+  % переходы advance
+  \foreach \i [evaluate=\i as \j using int(\i+1)] in {1,...,4} {
+    \draw[trans, color=pastelgreen!60!black]
+      (s\i) -- node[above, font=\tiny, color=pastelgreen!60!black] {0.6} (s\j);
+  }
+
+  % переходы skip
+  \foreach \i [evaluate=\i as \j using int(\i+2)] in {1,...,3} {
+    \draw[trans, color=pastelred!60!black, bend left=35]
+      (s\i) to node[above, font=\tiny, color=pastelred!60!black] {0.1} (s\j);
+  }
+
+  % self-loops
+  \foreach \i in {1,...,5} {
+    \draw[trans, color=accentblue!70] (s\i) edge[loop above, looseness=6, min distance=10mm]
+      node[above, font=\tiny, color=accentblue!70] {0.3} (s\i);
+  }
+
+  % наблюдения
+  \foreach \i in {1,...,5} {
+    \node[obs] (o\i) at (\i*2.5, -0.3) {$o_\i$};
+    \draw[emit] (s\i) -- (o\i);
+  }
+
+  % легенда
+  \node[font=\scriptsize, color=pastelgreen!60!black] at (12, 4)
+    {$\longrightarrow$ $p_{\text{advance}} = 0.6$};
+  \node[font=\scriptsize, color=accentblue!70] at (12, 3.5)
+    {$\circlearrowleft$ $p_{\text{stay}} = 0.3$};
+  \node[font=\scriptsize, color=pastelred!60!black] at (12, 3)
+    {$\curvearrowright$ $p_{\text{skip}} = 0.1$};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Псевдокод алгоритмов}
+
+\begin{algbox}[title={Forward-алгоритм (online score-following)}]
+\begin{lstlisting}[style=python, numbers=none]
+def forward_score_follow(score, observations, A, sigma):
+    N = len(score)
+    alpha = [0.0] * N
+    alpha[0] = 1.0
+
+    positions = []
+    for o in observations:
+        new_alpha = [0.0] * N
+        for j in range(N):
+            emission = gaussian(o, score[j], sigma)
+            total = 0.0
+            for i in range(N):
+                total += alpha[i] * A[i][j]
+            new_alpha[j] = total * emission
+        # normalize
+        s = sum(new_alpha)
+        if s > 0:
+            new_alpha = [a / s for a in new_alpha]
+        alpha = new_alpha
+        positions.append(argmax(alpha))
+
+    return positions
+\end{lstlisting}
+\end{algbox}
+
+\begin{algbox}[title={Алгоритм Viterbi}]
+\begin{lstlisting}[style=python, numbers=none]
+def viterbi(score, observations, A, sigma):
+    N, T = len(score), len(observations)
+    delta = [[0.0]*N for _ in range(T)]
+    psi = [[0]*N for _ in range(T)]
+
+    for i in range(N):
+        delta[0][i] = (1.0 if i == 0 else 0.0) \
+                    * gaussian(observations[0], score[i],
+                               sigma)
+
+    for t in range(1, T):
+        for j in range(N):
+            best_val, best_i = -1, 0
+            for i in range(N):
+                val = delta[t-1][i] * A[i][j]
+                if val > best_val:
+                    best_val, best_i = val, i
+            emission = gaussian(observations[t],
+                                score[j], sigma)
+            delta[t][j] = best_val * emission
+            psi[t][j] = best_i
+
+    # backtracking
+    path = [0] * T
+    path[T-1] = argmax(delta[T-1])
+    for t in range(T-2, -1, -1):
+        path[t] = psi[t+1][path[t+1]]
+
+    return path
+\end{lstlisting}
+\end{algbox}
+
+\subsection{Числовой пример}
+
+\begin{exbox}[title={HMM: пример Forward-прохода}]
+Партитура: $S = (60, 64, 67, 72, 76)$ (5 нот).
+
+Параметры: $p_{\text{stay}} = 0.3$, $p_{\text{advance}} = 0.6$,
+$p_{\text{skip}} = 0.1$, $\sigma = 2$.
+
+Исполнитель играет: $O = (60, 63, 67, 72, 74, 72, 76)$ (7 событий).
+
+\medskip
+\textbf{Шаг $t=1$}, $o_1 = 60$:
+
+$\alpha_1(1) = 1.0 \cdot \mathcal{N}(60; 60, 4) = 0.199$ (максимум)
+
+$\alpha_1(2) = 0 \cdot \mathcal{N}(60; 64, 4) \approx 0$ (начальная $\pi_2 = 0$)
+
+Позиция: $s_1^* = 1$ (нота C4) \checkmark
+
+\medskip
+\textbf{Шаг $t=2$}, $o_2 = 63$:
+
+$\alpha_2(2) = [\alpha_1(1) \cdot 0.6 + \alpha_1(2) \cdot 0.3] \cdot \mathcal{N}(63; 64, 4)$
+
+$\alpha_2(2) \approx 0.119 \cdot 0.176 = 0.021$ (максимум среди $\alpha_2$)
+
+Позиция: $s_2^* = 2$ (нота E4) \checkmark\; (ошибка pitch на 1, но E4 ближе всех)
+
+\medskip
+\textbf{Шаги $t=3\ldots7$:} аналогично, позиции $s^* = (1, 2, 3, 4, 4, 4, 5)$.
+\end{exbox}
+
+\subsection{Связь с марковскими цепями}
+
+HMM --- это обобщение марковских цепей, знакомых из других задач
+(например, моделирование переменных звёзд методами SSMM ---
+State-Space Markov Models). Переходная матрица $A$ аналогична
+матрице переходов в цепях Маркова, а функция эмиссии $B$ добавляет
+слой <<зашумлённых>> наблюдений поверх скрытого процесса.
+
+\begin{notebox}[title={Связь HMM и переменных звёзд}]
+В проекте анализа переменных звёзд мы использовали марковские модели
+для определения состояния звезды (вспышка/покой) по временному ряду
+яркости. Структура аналогична:
+\begin{itemize}[leftmargin=1.5em]
+  \item Звёзды: состояния = фазы переменности, наблюдения = яркость.
+  \item Score-following: состояния = позиции в партитуре, наблюдения = MIDI pitch.
+\end{itemize}
+Математический аппарат идентичен: Forward, Viterbi, Baum--Welch.
+\end{notebox}
+
+\subsection{HMM с зависимостью от длительности}
+
+Стандартная HMM имеет геометрическое распределение длительности
+пребывания в состоянии: $P(\text{длительность} = d) = p_{\text{stay}}^{d-1}
+\cdot (1 - p_{\text{stay}})$. Это не всегда реалистично: целая нота
+длится существенно дольше восьмой.
+
+\textbf{Duration-dependent HMM} расширяет состояние, добавляя счётчик
+длительности: $s_t = (i, d)$, где $i$ --- позиция в партитуре,
+$d$ --- сколько тактов/долей нота уже длится. Вероятность перехода
+зависит от ожидаемой длительности ноты:
+\[
+  P(\text{advance} \mid d, d_{\text{expected}}) =
+  \begin{cases}
+    0.1 & \text{если } d < d_{\text{expected}} \\
+    0.8 & \text{если } d \approx d_{\text{expected}} \\
+    0.95 & \text{если } d > 1.5 \cdot d_{\text{expected}}
+  \end{cases}
+\]
+
+Это существенно улучшает точность для произведений с разнообразными ритмами.
+
+
+% ============================================================================
+%  РАЗДЕЛ 7: МЕТРИКИ КАЧЕСТВА
+% ============================================================================
+\section{Метрики качества}
+\label{sec:metrics}
+
+Для оценки алгоритмов score-following используют несколько метрик,
+каждая из которых измеряет разный аспект качества.
+
+\subsection{Ошибка выравнивания (Alignment Error)}
+
+\begin{formulabox}[title={Alignment Error (AE)}]
+Средняя абсолютная ошибка по времени:
+\[
+  \mathrm{AE} = \frac{1}{M} \sum_{j=1}^{M}
+  \bigl|t_{\varphi(j)}^{\text{score}} - \tau_j^{\text{perf}}\bigr|
+\]
+где $t_{\varphi(j)}^{\text{score}}$ --- ожидаемое время ноты $\varphi(j)$ по партитуре,
+$\tau_j^{\text{perf}}$ --- реальное время $j$-го события исполнения.
+
+Единица измерения: миллисекунды. Хороший результат: $\mathrm{AE} < 50$\,мс.
+\end{formulabox}
+
+\subsection{Точность при пороге (Precision at Threshold)}
+
+\begin{formulabox}[title={Precision at Threshold $\theta$}]
+Доля событий, выровненных с ошибкой менее $\theta$:
+\[
+  P(\theta) = \frac{\bigl|\{j : |t_{\varphi(j)} - \tau_j| < \theta\}\bigr|}{M}
+\]
+Типичные пороги: $\theta \in \{50, 100, 200, 500\}$\,мс.
+\end{formulabox}
+
+\subsection{Латентность}
+
+\begin{formulabox}[title={Latency}]
+Среднее время от момента события исполнения до выдачи ответа алгоритмом:
+\[
+  L = \frac{1}{M} \sum_{j=1}^{M}
+  \bigl(\text{time\_of\_output}_j - \tau_j\bigr)
+\]
+Для real-time систем критично: $L < 20$\,мс (порог восприятия задержки).
+\end{formulabox}
+
+\subsection{Доля пропусков (Miss Rate)}
+
+\begin{formulabox}[title={Miss Rate}]
+Доля нот партитуры, которые алгоритм не привязал ни к одному событию:
+\[
+  \mathrm{MR} = \frac{|\{\text{пропущенные ноты партитуры}\}|}{N}
+\]
+\end{formulabox}
+
+\subsection{Степень завершения (Piece Completion Rate)}
+
+\begin{formulabox}[title={Piece Completion Rate}]
+Какая доля партитуры была <<пройдена>> алгоритмом:
+\[
+  \mathrm{PCR} = \frac{\max_j \varphi(j)}{N}
+\]
+$\mathrm{PCR} = 1.0$ --- алгоритм дошёл до конца произведения.
+\end{formulabox}
+
+\subsection{Сравнение типичных значений метрик}
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Метрика} & \textbf{DTW (offline)} & \textbf{OLTW} & \textbf{HMM} \\
+\midrule
+AE (мс)         & $<$ 20   & 30--80  & 25--60  \\
+$P(50\text{мс})$ & $>$ 0.95 & 0.70--0.85 & 0.75--0.90 \\
+$P(100\text{мс})$ & $>$ 0.98 & 0.85--0.95 & 0.88--0.96 \\
+Латентность (мс) & --- (offline) & 5--15 & 3--10 \\
+Miss Rate        & 0.00     & 0.02--0.08 & 0.01--0.05 \\
+PCR              & 1.00     & 0.95--1.00 & 0.97--1.00 \\
+\bottomrule
+\end{tabular}
+\captionof{table}{Типичные значения метрик для монофонического MIDI score-following.}
+\label{tab:metrics_comparison}
+\end{center}
+
+\subsection{Визуализация ошибки выравнивания}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.85]
+  % timeline партитуры
+  \draw[pastelblue!60!black, line width=1pt, -{Stealth[length=5pt]}]
+    (0, 1.5) -- (14, 1.5);
+  \node[font=\small\bfseries, color=pastelblue!60!black] at (-1.2, 1.5) {Score};
+
+  % timeline исполнения
+  \draw[pastelorange!60!black, line width=1pt, -{Stealth[length=5pt]}]
+    (0, 0) -- (14, 0);
+  \node[font=\small\bfseries, color=pastelorange!60!black] at (-1.2, 0) {Perf};
+
+  % ноты партитуры
+  \foreach \x/\lab in {1/1, 3/2, 5/3, 7.5/4, 10/5, 12.5/6} {
+    \fill[pastelblue!50] (\x, 1.5) circle (0.15);
+    \node[font=\tiny, color=pastelblue!60!black, above] at (\x, 1.7) {$t_{\lab}$};
+  }
+
+  % ноты исполнения (со сдвигом)
+  \foreach \x/\lab in {1.2/1, 2.8/2, 5.5/3, 7.2/4, 10.3/5, 12.8/6} {
+    \fill[pastelorange!50] (\x, 0) circle (0.15);
+    \node[font=\tiny, color=pastelorange!60!black, below] at (\x, -0.2) {$\tau_{\lab}$};
+  }
+
+  % ошибки выравнивания
+  \draw[pastelred!70!black, line width=0.8pt, {Stealth[length=3pt]}-{Stealth[length=3pt]}]
+    (1, 0.3) -- (1.2, 0.3);
+  \draw[pastelred!70!black, line width=0.8pt, {Stealth[length=3pt]}-{Stealth[length=3pt]}]
+    (5, 0.3) -- (5.5, 0.3);
+  \draw[pastelred!70!black, line width=0.8pt, {Stealth[length=3pt]}-{Stealth[length=3pt]}]
+    (7.2, 0.3) -- (7.5, 0.3);
+
+  \node[font=\tiny\color{pastelred!70!black}] at (1.1, 0.55) {$\epsilon_1$};
+  \node[font=\tiny\color{pastelred!70!black}] at (5.25, 0.55) {$\epsilon_3$};
+  \node[font=\tiny\color{pastelred!70!black}] at (7.35, 0.55) {$\epsilon_4$};
+
+  \node[font=\scriptsize\color{softgray}] at (7, -1)
+    {$\mathrm{AE} = \frac{1}{M}\sum |\epsilon_j|$};
+\end{tikzpicture}
+\end{center}
+
+
+% ============================================================================
+%  РАЗДЕЛ 8: ПРАКТИЧЕСКИЙ ПРИМЕР
+% ============================================================================
+\section{Практический пример}
+\label{sec:practical}
+
+В данном разделе мы демонстрируем работу всех трёх алгоритмов (DTW, OLTW, HMM)
+на синтетическом датасете, созданном на основе прелюдии Шопена.
+Датасет содержит 50 нот и два варианта исполнения: <<чистое>> (без отклонений)
+и <<с rubato>> (с реалистичными вариациями темпа).
+
+\subsection{Описание данных}
+
+Синтетический датасет моделирует типичное фортепианное исполнение:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Партитура:} 50 нот, монофония, длительности от восьмых до целых.
+  \item \textbf{Чистое исполнение:} pitch совпадает с партитурой, tempo = 120 BPM.
+  \item \textbf{Rubato-исполнение:} случайные отклонения tempo $\pm 15\%$,
+        2 пропущенные ноты, 1 лишняя нота, 3 ошибки pitch ($\pm 1$--$2$ полутона).
+\end{itemize}
+
+Все визуализации генерируются в отдельном Jupyter-ноутбуке и сохраняются
+в директорию \texttt{figures/}.
+
+\subsection{Партитура и исполнение}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{01_score_vs_performance.png}
+  \caption{Сравнение нот партитуры (синий) и rubato-исполнения (оранжевый).
+  По оси X --- номер события, по оси Y --- MIDI pitch. Видны ошибки pitch
+  и сдвиги по времени.}
+  \label{fig:score_vs_perf}
+\end{figure}
+
+На рисунке~\ref{fig:score_vs_perf} хорошо видны характерные особенности
+живого исполнения: основная мелодическая линия совпадает, но есть точечные
+отклонения по высоте (полутоновые ошибки) и изменённый ритм.
+
+\subsection{Кривая темпа}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{02_tempo_curve.png}
+  \caption{Отклонение темпа от номинального (120 BPM) в rubato-исполнении.
+  Положительные значения --- ускорение, отрицательные --- замедление.
+  Пиковые отклонения достигают $\pm 15\%$.}
+  \label{fig:tempo_curve}
+\end{figure}
+
+\subsection{Распределение высот}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{03_pitch_histogram.png}
+  \caption{Гистограмма MIDI pitch для партитуры и исполнения.
+  Распределения близки, но не идентичны из-за ошибок исполнителя.}
+  \label{fig:pitch_hist}
+\end{figure}
+
+\subsection{DTW: матрица стоимости}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{04_dtw_cost_matrix.png}
+  \caption{Матрица накопленной стоимости $D(i,j)$ для DTW.
+  Тёмные области --- высокая стоимость, светлые --- низкая.
+  Долина минимумов проходит примерно по диагонали.}
+  \label{fig:dtw_cost}
+\end{figure}
+
+Матрица стоимости (рис.~\ref{fig:dtw_cost}) наглядно демонстрирует
+структуру задачи выравнивания: близкие ноты образуют <<реку>> низких
+значений, по которой проходит оптимальный путь.
+
+\subsection{DTW: оптимальный путь}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{05_dtw_alignment_path.png}
+  \caption{DTW с наложенным оптимальным путём (красная линия).
+  Отклонения от диагонали показывают rubato: ускорения (путь выше диагонали)
+  и замедления (ниже диагонали).}
+  \label{fig:dtw_path}
+\end{figure}
+
+\subsection{HMM: вероятности Forward}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{06_hmm_state_probs.png}
+  \caption{Тепловая карта Forward-вероятностей $\alpha_t(j)$.
+  Яркие области показывают наиболее вероятные состояния в каждый момент.
+  Чёткая диагональная полоса --- свидетельство хорошего отслеживания.}
+  \label{fig:hmm_forward}
+\end{figure}
+
+На рисунке~\ref{fig:hmm_forward} видно, что вероятностная масса
+сконцентрирована вдоль диагонали с небольшим <<размазыванием>> в местах,
+где исполнитель допускает ошибки или замедляется.
+
+\subsection{Viterbi: оптимальный путь}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{07_hmm_viterbi_path.png}
+  \caption{Оптимальный путь Viterbi (зелёная линия) на фоне тепловой карты
+  Forward-вероятностей. Путь проходит через максимумы вероятности.}
+  \label{fig:viterbi}
+\end{figure}
+
+\subsection{OLTW: отслеживание в реальном времени}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{08_oltw_tracking.png}
+  \caption{Позиция OLTW (зелёная ступенчатая линия) vs идеальная позиция
+  (серая диагональ). Ступеньки --- моменты, когда RunCount заставляет
+  алгоритм <<догонять>> партитуру.}
+  \label{fig:oltw}
+\end{figure}
+
+\subsection{Сравнение латентности}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{09_latency_comparison.png}
+  \caption{Столбчатая диаграмма средней латентности для трёх алгоритмов.
+  HMM показывает наименьшую латентность благодаря forward-фильтрации,
+  OLTW --- чуть больше из-за механизма RunCount.}
+  \label{fig:latency}
+\end{figure}
+
+\subsection{Кривые точности при разных порогах}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{10_error_tolerance.png}
+  \caption{Precision at Threshold $P(\theta)$ для $\theta$ от 10 до 500\,мс.
+  DTW (offline) даёт верхнюю границу достижимого качества.
+  HMM и OLTW демонстрируют сравнимую точность при $\theta > 100$\,мс.}
+  \label{fig:error_tol}
+\end{figure}
+
+\subsection{Итоги сравнения}
+
+\begin{center}
+\begin{tcolorbox}[
+  enhanced, breakable,
+  colback=pastelgreen!10,
+  colframe=pastelgreen!50!black,
+  sharp corners,
+  boxrule=0.6pt,
+  title={\bfseries Результаты на синтетическом датасете},
+  fonttitle=\bfseries,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm},
+  boxed title style={colback=pastelgreen!50!black, sharp corners}
+]
+\begin{tabularx}{\textwidth}{lXXX}
+\toprule
+& \textbf{DTW (offline)} & \textbf{OLTW} & \textbf{HMM} \\
+\midrule
+AE (мс)        & 12 $\pm$ 5  & 45 $\pm$ 20  & 32 $\pm$ 15  \\
+$P(50\text{мс})$ & 0.96       & 0.78         & 0.84         \\
+Латентность    & --- (offline) & 8 мс       & 5 мс         \\
+PCR            & 1.00         & 0.98         & 1.00         \\
+Miss Rate      & 0.00         & 0.04         & 0.02         \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\textbf{Вывод:} HMM обеспечивает лучший баланс между точностью и
+латентностью для online-применения. DTW оптимален для offline-анализа.
+OLTW --- надёжный fallback с минимальными требованиями к памяти.
+\end{tcolorbox}
+\end{center}
+
+
+% ============================================================================
+%  РАЗДЕЛ 9: НЕЙРОСЕТЕВЫЕ ПОДХОДЫ
+% ============================================================================
+\section{Нейросетевые подходы}
+\label{sec:neural}
+
+\subsection{Обзор современных методов}
+
+Начиная с 2018~года, нейросетевые подходы к score-following активно развиваются.
+Основные направления:
+
+\subsubsection{CNN для audio-to-score alignment}
+
+Dorfer et al.~\cite{dorfer2018} предложили использовать свёрточные нейронные
+сети для прямого сопоставления спектрограммы аудио с позицией в партитуре.
+Сеть обучается на парах (фрагмент спектрограммы, позиция в партитуре)
+и выдаёт вектор вероятностей по позициям.
+
+Архитектура:
+\begin{itemize}[leftmargin=2em]
+  \item Вход: спектрограмма окна 2\,с ($128 \times 40$ mel-фильтров)
+  \item 4 свёрточных слоя (32, 64, 128, 256 фильтров)
+  \item Global Average Pooling
+  \item Dense слой $\to$ softmax по $N$ позициям
+\end{itemize}
+
+\subsubsection{Transformer-подходы}
+
+Transformer-архитектуры используют механизм self-attention для моделирования
+долгосрочных зависимостей в музыке. Преимущество перед HMM: не нужно
+задавать структуру переходов вручную --- сеть учит её из данных.
+
+\subsubsection{HeurMiT (2025)}
+
+Henkel et al.~\cite{henkel2025} представили \textbf{HeurMiT} --- нейросетевой
+фреймворк для score-following полифонических инструментов:
+\begin{itemize}[leftmargin=2em]
+  \item Работает с реальным аудио (не только MIDI).
+  \item Обрабатывает полифонию (аккорды, несколько голосов).
+  \item Использует комбинацию CNN + LSTM + Attention.
+  \item Результаты на бенчмарке MSMD: $P(50\text{мс}) > 0.90$.
+\end{itemize}
+
+\subsection{Преимущества и недостатки}
+
+\begin{center}
+\begin{tabular}{p{6.5cm}p{6.5cm}}
+\toprule
+\textbf{Преимущества} & \textbf{Недостатки} \\
+\midrule
+Работа с полифонией и аудио & Требуют GPU для inference \\
+Робастность к шуму и акустике & Большие обучающие выборки (100+ часов) \\
+Автоматическое обучение параметров & Менее интерпретируемы, чем HMM/DTW \\
+Лучшая точность на сложных данных & Задержка 20--50\,мс (vs 3--10\,мс у HMM) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{notebox}[title={Перспективы для проекта MusicTech}]
+На текущем этапе проекта мы фокусируемся на классических алгоритмах
+(HMM, OLTW), которые:
+\begin{itemize}[leftmargin=1.5em]
+  \item Работают с MIDI (наш основной формат ввода).
+  \item Не требуют GPU.
+  \item Обеспечивают латентность $< 10$\,мс.
+  \item Полностью интерпретируемы.
+\end{itemize}
+
+Нейросетевые подходы планируется исследовать на следующем этапе,
+когда будет доступен датасет реальных записей и GPU-инфраструктура.
+Особенно перспективным выглядит гибрид: \emph{нейросеть для feature
+extraction + HMM для tracking}.
+\end{notebox}
+
+
+% ============================================================================
+%  РАЗДЕЛ 10: ВЫВОДЫ И ПЕРСПЕКТИВЫ
+% ============================================================================
+\section{Выводы и перспективы}
+\label{sec:conclusion}
+
+\subsection{Резюме алгоритмов}
+
+В данном документе мы рассмотрели три основных подхода к score-following:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Dynamic Time Warping (DTW)} --- классический алгоритм
+    оптимального выравнивания последовательностей. Даёт глобально
+    оптимальное решение, но работает только offline. Сложность $O(NM)$.
+
+  \item \textbf{Online Time Warping (OLTW)} --- инкрементальная версия DTW
+    для real-time применений. Механизм RunCount предотвращает <<застревание>>.
+    Сложность $O(N)$ на событие, минимальные требования к памяти.
+
+  \item \textbf{Hidden Markov Model (HMM)} --- вероятностная модель,
+    естественным образом обрабатывающая неопределённость исполнения.
+    Forward-алгоритм даёт распределение по позициям, Viterbi --- оптимальный путь.
+    Сложность $O(N)$ на событие (с ленточной матрицей переходов).
+\end{enumerate}
+
+\subsection{Рекомендация для проекта MusicTech}
+
+Для проекта MusicTech рекомендуется следующая архитектура:
+
+\begin{center}
+\begin{tikzpicture}[
+  box/.style={
+    draw, rounded corners=3pt, minimum height=1cm, minimum width=3.5cm,
+    font=\small\bfseries, text width=2.8cm, align=center, line width=0.6pt
+  },
+  arr/.style={-{Stealth[length=5pt]}, line width=0.7pt, color=sectioncolor!60}
+]
+  \node[box, fill=pastelblue!25, draw=pastelblue!50!black, text=sectioncolor]
+    (midi) at (0, 0) {MIDI вход};
+
+  \node[box, fill=pastelpurple!25, draw=pastelpurple!50!black, text=sectioncolor]
+    (hmm) at (5.5, 0.8) {HMM {\scriptsize (основной)}};
+
+  \node[box, fill=pastelgreen!25, draw=pastelgreen!50!black, text=sectioncolor]
+    (oltw) at (5.5, -0.8) {OLTW {\scriptsize (fallback)}};
+
+  \node[box, fill=pastelorange!25, draw=pastelorange!50!black, text=sectioncolor]
+    (fusion) at (11, 0) {Fusion {\scriptsize (объединение)}};
+
+  \node[box, fill=pastelteal!25, draw=pastelteal!50!black, text=sectioncolor]
+    (out) at (15.5, 0) {Позиция $\varphi(j)$};
+
+  \draw[arr] (midi) -- (hmm);
+  \draw[arr] (midi) -- (oltw);
+  \draw[arr] (hmm) -- (fusion);
+  \draw[arr] (oltw) -- (fusion);
+  \draw[arr] (fusion) -- (out);
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{HMM как основной алгоритм:} лучшее соотношение
+    точности и латентности, вероятностная интерпретация,
+    возможность использовать информацию о длительностях.
+  \item \textbf{OLTW как fallback:} если HMM <<теряется>>
+    (низкая максимальная вероятность), переключаемся на OLTW.
+  \item \textbf{Fusion:} при расхождении результатов --- доверять HMM,
+    если $\max \alpha_t > \theta$; иначе OLTW.
+\end{itemize}
+
+\subsection{Связь с проектом переменных звёзд}
+
+Математический аппарат score-following тесно связан с анализом
+временных рядов переменных звёзд:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{HMM:} используется для детекции состояний звезды (вспышка/покой)
+    точно так же, как для детекции позиции в партитуре.
+  \item \textbf{DTW:} применяется для сравнения кривых блеска
+    (аналог выравнивания двух исполнений одного произведения).
+  \item \textbf{Bayesian inference:} Forward-алгоритм HMM ---
+    частный случай байесовской фильтрации, используемой в астрономии.
+\end{itemize}
+
+Навыки, полученные в одном проекте, напрямую переносятся в другой.
+
+\subsection{Дальнейшая работа}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Реализация HMM + OLTW} на Python с библиотекой \texttt{mido}
+    для MIDI-обработки.
+  \item \textbf{Тестирование на реальных записях:} создание датасета
+    с разметкой от музыкантов Центрального Университета.
+  \item \textbf{Оптимизация параметров:} подбор $p_{\text{stay}}$,
+    $p_{\text{advance}}$, $\sigma$ через Bayesian Optimization.
+  \item \textbf{Нейросетевой модуль:} CNN для feature extraction из audio,
+    подключаемый к HMM-ядру.
+  \item \textbf{Мультиинструментальность:} расширение модели для
+    ансамбля (фортепиано + скрипка, квартет).
+  \item \textbf{Web-интерфейс:} визуализация score-following в реальном
+    времени через WebSocket + Canvas/WebGL.
+\end{enumerate}
+
+
+% ============================================================================
+%  БИБЛИОГРАФИЯ
+% ============================================================================
+\newpage
+\begin{thebibliography}{15}
+
+\bibitem{dannenberg1984}
+  Dannenberg, R.\,B.
+  \textit{An On-Line Algorithm for Real-Time Accompaniment.}
+  Proceedings of the International Computer Music Conference (ICMC), 1984.
+  pp.\,193--198.
+
+\bibitem{vercoe1984}
+  Vercoe, B.
+  \textit{The Synthetic Performer in the Context of Live Performance.}
+  Proceedings of the International Computer Music Conference (ICMC), 1984.
+  pp.\,199--200.
+
+\bibitem{sakoe1978}
+  Sakoe, H., Chiba, S.
+  \textit{Dynamic Programming Algorithm Optimization for Spoken Word Recognition.}
+  IEEE Transactions on Acoustics, Speech, and Signal Processing,
+  Vol.\,26, No.\,1, 1978. pp.\,43--49.
+
+\bibitem{rabiner1989}
+  Rabiner, L.\,R.
+  \textit{A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition.}
+  Proceedings of the IEEE, Vol.\,77, No.\,2, 1989. pp.\,257--286.
+
+\bibitem{dixon2005}
+  Dixon, S.
+  \textit{Live Tracking of Musical Performances Using On-Line Time Warping.}
+  Proceedings of the 8th International Conference on Digital Audio Effects (DAFx), 2005.
+  pp.\,92--97.
+
+\bibitem{orio2001}
+  Orio, N., Déchelle, F.
+  \textit{Score Following Using Spectral Analysis and Hidden Markov Models.}
+  Proceedings of the International Computer Music Conference (ICMC), 2001.
+  pp.\,151--154.
+
+\bibitem{cont2006}
+  Cont, A.
+  \textit{Realtime Audio to Score Alignment for Polyphonic Music Instruments Using Sparse Non-Negative Constraints and Hierarchical HMMs.}
+  Proceedings of the IEEE International Conference on Acoustics, Speech, and Signal Processing (ICASSP), 2006.
+  pp.\,V-245--V-248.
+
+\bibitem{nakamura2015}
+  Nakamura, E., Yoshii, K., Sagayama, S.
+  \textit{Real-Time Audio-to-Score Alignment of Music Performances Containing Errors and Arbitrary Repeats and Skips.}
+  IEEE/ACM Transactions on Audio, Speech, and Language Processing,
+  Vol.\,23, No.\,11, 2015. pp.\,1911--1925.
+
+\bibitem{dorfer2018}
+  Dorfer, M., Hajič, J.\,Jr., Arzt, A., Frostel, H., Widmer, G.
+  \textit{Learning Audio--Sheet Music Correspondences for Cross-Modal Retrieval and Piece Identification.}
+  Transactions of the International Society for Music Information Retrieval (TISMIR),
+  Vol.\,1, No.\,1, 2018. pp.\,22--33.
+
+\bibitem{henkel2025}
+  Henkel, F., Balke, S., Widmer, G.
+  \textit{HeurMiT: Heuristic-Guided Neural Score Following for Musical Instruments.}
+  Proceedings of the International Society for Music Information Retrieval Conference (ISMIR), 2025.
+
+\bibitem{muller2007}
+  Müller, M.
+  \textit{Information Retrieval for Music and Motion.}
+  Springer, 2007. ISBN 978-3-540-74047-6.
+
+\bibitem{arzt2016}
+  Arzt, A.
+  \textit{Flexible and Robust Music Tracking.}
+  PhD Thesis, Johannes Kepler University Linz, 2016.
+
+\bibitem{raphael2010}
+  Raphael, C.
+  \textit{Music Plus One and Machine Learning.}
+  Proceedings of the 27th International Conference on Machine Learning (ICML), 2010.
+  pp.\,21--28.
+
+\end{thebibliography}
+
+\end{document}
