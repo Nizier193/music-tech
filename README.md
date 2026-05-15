@@ -19,11 +19,16 @@ music-tech/
 ├── .gitignore
 ├── ScoreFollowing.pdf       ← методичка по DTW / OLTW / HMM
 │
-├── article/                 ← всё про статью и тезисы
+├── article/                 ← всё про статью, тезисы и презентацию
 │   ├── README.md            ← описание папки + ссылки на разделы
 │   ├── main.tex             ← главный LaTeX-файл (REVTeX 4-2)
 │   ├── main.pdf             ← собранный PDF (открывается в GitHub)
 │   ├── тезисы.tex / тезисы.pdf  ← 2-страничные конференц-тезисы
+│   ├── presentation/        ← beamer-презентация для «Научного Телеграфа»
+│   │   ├── presentation.tex / presentation.pdf  (18 слайдов, 16:9)
+│   │   ├── sections/        ← 18 .tex-фрагментов по одному слайду
+│   │   ├── figures/tikz/    ← 12 TikZ-схем + 4 PGFPlots-графика
+│   │   └── build.ps1, README.md
 │   ├── references.bib       ← библиография (BibTeX, 35 источников)
 │   ├── mainNotes.bib        ← рабочие заметки и черновые ссылки
 │   ├── build.ps1            ← сборка PDF одной командой
@@ -115,11 +120,14 @@ music-tech/
 - [Современные расширения HMM](article/docs/hmm-extensions.md) — HSMM,
   CRF, Neural HMM, SSMM, DF, MML/LM3L.
 
-### Сама статья
+### Сама статья и презентация
 
 - [Свежий PDF статьи](article/main.pdf) — открывается прямо в GitHub.
-- [LaTeX-исходники](article/) и [README по сборке](article/README.md).
+- [LaTeX-исходники статьи](article/) и [README по сборке](article/README.md).
 - [Тезисы 2-страничные](article/тезисы.pdf).
+- [Презентация на «Научный Телеграф»](article/presentation/presentation.pdf)
+  — 18 слайдов в beamer 16:9, единый научный стиль со статьёй.
+  [Описание + сборка](article/presentation/README.md).
 
 ### Приложение / код
 
