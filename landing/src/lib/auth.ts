@@ -221,14 +221,18 @@ function codeEmailHtml(props: {
   <h1 style="margin:0 0 12px 0;font-size:22px;letter-spacing:-0.01em;">${escapeHtml(props.title)}</h1>
   <p style="margin:0;color:#475569;font-size:14px;line-height:1.55;">${escapeHtml(props.hint)}</p>
 </td></tr>
-<tr><td style="padding:24px 32px;">
+${(() => {
+  const c = String(props.code);
+  const pretty = c.length === 6 ? c.slice(0, 3) + " " + c.slice(3) : c;
+  return `<tr><td style="padding:24px 32px;">
   <div style="text-align:center;padding:20px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;">
-    <div style="font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;font-size:32px;letter-spacing:0.4em;font-weight:700;color:#065f46;">
-      ${escapeHtml(props.code)}
+    <div style="font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;font-size:32px;font-weight:700;color:#065f46;">
+      ${escapeHtml(pretty)}
     </div>
     <div style="margin-top:8px;font-size:12px;color:#047857;">код действует 10 минут</div>
   </div>
-</td></tr>
+</td></tr>`;
+})()}
 <tr><td style="padding:0 32px 24px 32px;color:#64748b;font-size:12px;line-height:1.5;">
   ${escapeHtml(props.footnote)}
 </td></tr>`);

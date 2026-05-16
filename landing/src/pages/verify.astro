@@ -22,12 +22,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         <label class="block">
           <span class="block text-sm font-semibold text-ink-800 mb-1.5">Код подтверждения</span>
           <input
+            id="verify-code"
             name="code"
             type="text"
             inputmode="numeric"
             autocomplete="one-time-code"
-            pattern="\d{6}"
-            maxlength="6"
+            maxlength="20"
             required
             placeholder="123456"
             class="w-full rounded-xl border border-ink-200 px-4 py-3 text-xl text-center
@@ -78,16 +78,39 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     const form    = document.getElementById("verify-form");
     const error   = document.getElementById("verify-error");
     const submit  = document.getElementById("verify-submit");
+    const codeIn  = document.getElementById("verify-code");
+
+    codeIn?.addEventListener("input", (e) => {
+      const el = e.currentTarget;
+      const cleaned = String(el.value || "").replace(/\D/g, "").slice(0, 6);
+      if (el.value !== cleaned) el.value = cleaned;
+    });
+
+    codeIn?.addEventListener("paste", (e) => {
+      e.preventDefault();
+      const txt = (e.clipboardData || window.clipboardData)?.getData("text") || "";
+      const cleaned = txt.replace(/\D/g, "").slice(0, 6);
+      const el = e.currentTarget;
+      el.value = cleaned;
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    });
 
     form?.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (!error || !submit) return;
       error.classList.add("hidden");
-      submit.textContent = "Проверяем код...";
-      submit.setAttribute("disabled", "disabled");
 
       const data = new FormData(form);
       const code = String(data.get("code") || "").replace(/\D/g, "");
+      if (code.length !== 6) {
+        error.textContent = "Введите 6-значный код из письма (только цифры).";
+        error.classList.remove("hidden");
+        return;
+      }
+
+      submit.textContent = "Проверяем код...";
+      submit.setAttribute("disabled", "disabled");
+
       const payload = { email, code };
 
       try {
