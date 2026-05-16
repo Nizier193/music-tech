@@ -1,0 +1,465 @@
+---
+import Base from "../layouts/Base.astro";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<Base
+  title="Личный кабинет — MusicTech"
+  description="Управление аккаунтом MusicTech: профиль, безопасность и тарифный план."
+>
+  <!-- guard-фрагмент: показываем skeleton пока проверяем сессию -->
+  <section id="account-loading" class="container-soft py-24 md:py-32 text-center">
+    <div class="inline-flex items-center gap-3 text-ink-500">
+      <svg class="animate-spin size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.2"/>
+        <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      загружаем профиль...
+    </div>
+  </section>
+
+  <section id="account-app" class="container-soft py-12 md:py-16 hidden">
+    <header class="reveal flex items-end justify-between gap-4 flex-wrap mb-10">
+      <div>
+        <span class="pill">личный кабинет</span>
+        <h1 class="mt-3 font-display text-4xl md:text-5xl font-bold tracking-tight">
+          Привет, <span id="acc-greet" class="text-brand-600"></span>
+        </h1>
+        <p class="mt-2 text-ink-600" id="acc-subtitle">
+          Управляйте профилем, безопасностью и подпиской.
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <a id="acc-admin-link" href={`${base}/admin`} class="btn-ghost hidden">
+          Админка
+        </a>
+        <button id="acc-logout" class="btn-ghost">Выйти</button>
+      </div>
+    </header>
+
+    <!-- KPI-карточки -->
+    <div class="reveal grid gap-4 md:grid-cols-3 mb-10">
+      <article class="card">
+        <div class="text-xs uppercase tracking-wider text-ink-500">текущий план</div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="acc-plan" class="font-display text-3xl font-bold text-ink-900">Open-Beta</span>
+          <span class="text-sm text-brand-700 font-semibold">бесплатно для всех</span>
+        </div>
+        <p class="mt-2 text-sm text-ink-600">
+          Все возможности MusicTech открыты, без ограничений по партитурам и устройствам.
+        </p>
+      </article>
+
+      <article class="card">
+        <div class="text-xs uppercase tracking-wider text-ink-500">в команде</div>
+        <div class="mt-2 font-display text-3xl font-bold text-ink-900" id="acc-since">—</div>
+        <p class="mt-2 text-sm text-ink-600">
+          Дата регистрации вашего аккаунта на сайте musictech.tech.
+        </p>
+      </article>
+
+      <article class="card">
+        <div class="text-xs uppercase tracking-wider text-ink-500">статус</div>
+        <div class="mt-2 flex items-center gap-2">
+          <span class="size-2.5 rounded-full bg-brand-500 animate-pulse"></span>
+          <span class="font-display text-3xl font-bold text-ink-900">Активен</span>
+        </div>
+        <p class="mt-2 text-sm text-ink-600">
+          E-mail подтверждён, можно входить в десктоп-приложение.
+        </p>
+      </article>
+    </div>
+
+    <!-- tabs -->
+    <div class="reveal mb-6">
+      <nav class="flex gap-2 border-b border-ink-200 overflow-x-auto" id="acc-tabs">
+        <button data-tab="profile"  class="acc-tab-btn">Профиль</button>
+        <button data-tab="security" class="acc-tab-btn">Безопасность</button>
+        <button data-tab="plan"     class="acc-tab-btn">Тарифный план</button>
+        <button data-tab="app"      class="acc-tab-btn">Приложение</button>
+      </nav>
+    </div>
+
+    <!-- TAB: profile -->
+    <section data-pane="profile" class="acc-pane grid gap-6 md:grid-cols-2 reveal">
+      <form id="profile-form" class="card space-y-5">
+        <h2 class="font-display text-xl font-bold">Профиль</h2>
+
+        <label class="block">
+          <span class="block text-sm font-semibold text-ink-800 mb-1.5">Имя</span>
+          <input id="pf-name" name="name" type="text" required minlength="2" maxlength="60"
+            class="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm bg-white
+                   focus:border-brand-500 focus:ring focus:ring-brand-100 outline-none transition" />
+        </label>
+
+        <label class="block">
+          <span class="block text-sm font-semibold text-ink-800 mb-1.5">E-mail</span>
+          <input id="pf-email-readonly" type="email" disabled
+            class="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm bg-ink-50
+                   text-ink-500 outline-none cursor-not-allowed" />
+          <span class="block mt-1.5 text-xs text-ink-500">
+            смена e-mail доступна в блоке «Безопасность» — потребуется подтверждение
+          </span>
+        </label>
+
+        <button type="submit" class="btn-primary">Сохранить</button>
+        <p id="pf-msg" class="msg hidden"></p>
+      </form>
+
+      <aside class="card bg-gradient-to-br from-brand-50 to-white">
+        <h3 class="font-display text-lg font-bold">Привязка к приложению</h3>
+        <p class="mt-2 text-sm text-ink-600">
+          Войдя в десктопное MusicTech этим же e-mail и паролем, вы получите
+          активированную лицензию автоматически. JWT хранится только на вашем
+          устройстве.
+        </p>
+        <a href={`${base}/download`} class="btn-ghost mt-4">Скачать приложение</a>
+      </aside>
+    </section>
+
+    <!-- TAB: security -->
+    <section data-pane="security" class="acc-pane grid gap-6 md:grid-cols-2 hidden reveal">
+      <form id="password-form" class="card space-y-5">
+        <h2 class="font-display text-xl font-bold">Сменить пароль</h2>
+        <label class="block">
+          <span class="block text-sm font-semibold text-ink-800 mb-1.5">Текущий пароль</span>
+          <input name="currentPassword" type="password" required minlength="8" autocomplete="current-password"
+            class="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm bg-white
+                   focus:border-brand-500 focus:ring focus:ring-brand-100 outline-none transition" />
+        </label>
+        <label class="block">
+          <span class="block text-sm font-semibold text-ink-800 mb-1.5">Новый пароль</span>
+          <input name="newPassword" type="password" required minlength="8" autocomplete="new-password"
+            class="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm bg-white
+                   focus:border-brand-500 focus:ring focus:ring-brand-100 outline-none transition" />
+          <span class="block mt-1.5 text-xs text-ink-500">минимум 8 символов</span>
+        </label>
+        <button type="submit" class="btn-primary">Обновить пароль</button>
+        <p id="pwd-msg" class="msg hidden"></p>
+      </form>
+
+      <form id="email-form" class="card space-y-5">
+        <h2 class="font-display text-xl font-bold">Сменить e-mail</h2>
+
+        <div id="em-step1">
+          <label class="block">
+            <span class="block text-sm font-semibold text-ink-800 mb-1.5">Новый e-mail</span>
+            <input name="newEmail" type="email" required
+              class="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm bg-white
+                     focus:border-brand-500 focus:ring focus:ring-brand-100 outline-none transition" />
+          </label>
+          <label class="block mt-4">
+            <span class="block text-sm font-semibold text-ink-800 mb-1.5">Текущий пароль</span>
+            <input name="currentPassword" type="password" required minlength="8" autocomplete="current-password"
+              class="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm bg-white
+                     focus:border-brand-500 focus:ring focus:ring-brand-100 outline-none transition" />
+          </label>
+          <button type="submit" class="btn-primary mt-5">Отправить код на новый e-mail</button>
+        </div>
+
+        <div id="em-step2" class="hidden">
+          <p class="text-sm text-ink-600">
+            Мы отправили 6-значный код на <b id="em-target"></b>. Введите его ниже:
+          </p>
+          <label class="block mt-3">
+            <span class="block text-sm font-semibold text-ink-800 mb-1.5">Код подтверждения</span>
+            <input id="em-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="20"
+              class="w-full rounded-xl border border-ink-200 px-4 py-3 text-xl text-center
+                     font-mono tracking-[0.5em] bg-white focus:border-brand-500
+                     focus:ring focus:ring-brand-100 outline-none transition" placeholder="123456" />
+          </label>
+          <div class="flex items-center gap-2 mt-4">
+            <button type="submit" class="btn-primary">Подтвердить</button>
+            <button type="button" id="em-cancel" class="btn-ghost">Отмена</button>
+          </div>
+        </div>
+
+        <p id="em-msg" class="msg hidden"></p>
+      </form>
+    </section>
+
+    <!-- TAB: plan -->
+    <section data-pane="plan" class="acc-pane grid gap-6 md:grid-cols-3 hidden reveal">
+      <article class="card border-brand-500 ring-2 ring-brand-100 relative">
+        <span class="absolute -top-3 left-4 px-2 py-0.5 bg-brand-500 text-white text-xs font-bold rounded">
+          ваш план
+        </span>
+        <h3 class="font-display text-xl font-bold">Open-Beta</h3>
+        <p class="mt-1 text-ink-500 text-sm">бесплатно</p>
+        <ul class="mt-4 space-y-2 text-sm text-ink-700">
+          <li>✓ Все следящие алгоритмы (HMM, OLTW, гибрид)</li>
+          <li>✓ RL-агент опережающего темпа</li>
+          <li>✓ Безлимит партитур и устройств</li>
+          <li>✓ Локальная обработка, без облака</li>
+          <li>✓ Открытый исходный код</li>
+        </ul>
+      </article>
+
+      <article class="card opacity-70">
+        <h3 class="font-display text-xl font-bold">Studio</h3>
+        <p class="mt-1 text-ink-500 text-sm">скоро · ~ 990 ₽/мес</p>
+        <ul class="mt-4 space-y-2 text-sm text-ink-700">
+          <li>+ Облачный архив исполнений</li>
+          <li>+ Шер партитур внутри ансамбля</li>
+          <li>+ Командные репетиции до 6 человек</li>
+          <li>+ Поддержка в течение суток</li>
+        </ul>
+      </article>
+
+      <article class="card opacity-70">
+        <h3 class="font-display text-xl font-bold">Stage</h3>
+        <p class="mt-1 text-ink-500 text-sm">скоро · договорно</p>
+        <ul class="mt-4 space-y-2 text-sm text-ink-700">
+          <li>+ Концертная лицензия</li>
+          <li>+ SLA и приоритетная поддержка</li>
+          <li>+ Кастомные следящие алгоритмы</li>
+          <li>+ Интеграция со звукорежиссёрским пультом</li>
+        </ul>
+      </article>
+    </section>
+
+    <!-- TAB: app -->
+    <section data-pane="app" class="acc-pane grid gap-6 md:grid-cols-2 hidden reveal">
+      <article class="card">
+        <h3 class="font-display text-xl font-bold">Десктопное приложение</h3>
+        <p class="mt-2 text-sm text-ink-600">
+          MusicTech работает локально, без интернета. Войдите в приложение этим же
+          e-mail и паролем, лицензия активируется автоматически и сохранится в
+          системный keychain.
+        </p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <a href={`${base}/download`} class="btn-primary">Скачать</a>
+          <a href={`${base}/#how`} class="btn-ghost">Как это работает</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <h3 class="font-display text-xl font-bold">Ключи для разработчиков</h3>
+        <p class="mt-2 text-sm text-ink-600">
+          MusicTech open-source. Хотите интегрироваться с трекером партитуры —
+          форкните репозиторий и используйте Python API.
+        </p>
+        <a href="https://github.com/Nizier193/music-tech" class="btn-ghost mt-4 inline-flex">
+          GitHub репозиторий
+        </a>
+      </article>
+    </section>
+  </section>
+
+  <script is:inline>
+    const loading = document.getElementById("account-loading");
+    const app     = document.getElementById("account-app");
+
+    function showApp() { loading.classList.add("hidden"); app.classList.remove("hidden"); }
+    function gotoLogin() {
+      const base = location.pathname.replace(/\/account\/?$/, "");
+      location.href = `${base}/login`;
+    }
+
+    function fmtDate(ts) {
+      try {
+        return new Date(ts).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+      } catch { return "—"; }
+    }
+
+    function authHeaders() {
+      const t = localStorage.getItem("musictech.token") || "";
+      const h = { "content-type": "application/json" };
+      if (t) h.authorization = `Bearer ${t}`;
+      return h;
+    }
+
+    async function loadMe() {
+      try {
+        const res = await fetch("/api/auth/me", { headers: authHeaders(), credentials: "include" });
+        if (res.status === 401) { gotoLogin(); return; }
+        const body = await res.json();
+        if (!body?.ok) { gotoLogin(); return; }
+        applyUser(body.user);
+        showApp();
+      } catch {
+        gotoLogin();
+      }
+    }
+
+    function applyUser(u) {
+      document.getElementById("acc-greet").textContent = u.name || u.email.split("@")[0];
+      document.getElementById("acc-subtitle").textContent =
+        u.role === "admin"
+          ? "Привет, админ. У вас включена админская панель."
+          : "Управляйте профилем, безопасностью и подпиской.";
+      document.getElementById("acc-plan").textContent = labelPlan(u.plan);
+      document.getElementById("acc-since").textContent = "с " + fmtDate(u.createdAt);
+      document.getElementById("pf-name").value = u.name || "";
+      document.getElementById("pf-email-readonly").value = u.email;
+
+      if (u.role === "admin") {
+        document.getElementById("acc-admin-link").classList.remove("hidden");
+      }
+
+      localStorage.setItem("musictech.email", u.email);
+      localStorage.setItem("musictech.name",  u.name || "");
+      localStorage.setItem("musictech.role",  u.role || "user");
+    }
+
+    function labelPlan(p) {
+      if (p === "open-beta") return "Open-Beta";
+      return p || "Open-Beta";
+    }
+
+    // --- табы ---
+    document.getElementById("acc-tabs").addEventListener("click", (e) => {
+      const btn = e.target.closest(".acc-tab-btn");
+      if (!btn) return;
+      const tab = btn.dataset.tab;
+      document.querySelectorAll(".acc-tab-btn").forEach((b) => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      document.querySelectorAll(".acc-pane").forEach((p) => {
+        p.classList.toggle("hidden", p.dataset.pane !== tab);
+      });
+      history.replaceState(null, "", `#${tab}`);
+    });
+
+    // активируем нужный таб по хешу
+    function initTab() {
+      const hash = (location.hash || "#profile").slice(1);
+      const btn = document.querySelector(`.acc-tab-btn[data-tab="${hash}"]`)
+                || document.querySelector(`.acc-tab-btn[data-tab="profile"]`);
+      btn?.click();
+    }
+
+    // --- logout ---
+    document.getElementById("acc-logout").addEventListener("click", async () => {
+      try { await fetch("/api/auth/logout", { method: "POST", credentials: "include" }); }
+      finally {
+        localStorage.removeItem("musictech.token");
+        localStorage.removeItem("musictech.email");
+        localStorage.removeItem("musictech.name");
+        localStorage.removeItem("musictech.role");
+        location.href = location.pathname.replace(/\/account\/?$/, "") + "/";
+      }
+    });
+
+    // --- profile form ---
+    document.getElementById("profile-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById("pf-msg");
+      const name = document.getElementById("pf-name").value.trim();
+      msg.classList.add("hidden");
+      try {
+        const r = await fetch("/api/account/update", {
+          method: "POST", headers: authHeaders(), credentials: "include",
+          body: JSON.stringify({ name }),
+        });
+        const b = await r.json();
+        if (!r.ok || !b?.ok) throw new Error(b?.error || `ошибка ${r.status}`);
+        showMsg(msg, "ok", b.message || "сохранено");
+        if (b.user) applyUser(b.user);
+      } catch (err) { showMsg(msg, "err", err.message); }
+    });
+
+    // --- password form ---
+    document.getElementById("password-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = e.currentTarget;
+      const data = new FormData(f);
+      const msg = document.getElementById("pwd-msg");
+      msg.classList.add("hidden");
+      try {
+        const r = await fetch("/api/account/update", {
+          method: "POST", headers: authHeaders(), credentials: "include",
+          body: JSON.stringify({
+            currentPassword: data.get("currentPassword"),
+            newPassword:     data.get("newPassword"),
+          }),
+        });
+        const b = await r.json();
+        if (!r.ok || !b?.ok) throw new Error(b?.error || `ошибка ${r.status}`);
+        f.reset();
+        showMsg(msg, "ok", "пароль обновлён");
+      } catch (err) { showMsg(msg, "err", err.message); }
+    });
+
+    // --- email form (двухшаговая) ---
+    const emForm = document.getElementById("email-form");
+    const emStep1 = document.getElementById("em-step1");
+    const emStep2 = document.getElementById("em-step2");
+    const emMsg   = document.getElementById("em-msg");
+    let emPending = null;
+
+    document.getElementById("em-cancel").addEventListener("click", () => {
+      emPending = null;
+      emStep2.classList.add("hidden");
+      emStep1.classList.remove("hidden");
+      emMsg.classList.add("hidden");
+    });
+
+    emForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      emMsg.classList.add("hidden");
+      const data = new FormData(emForm);
+
+      try {
+        let body;
+        if (!emPending) {
+          body = {
+            newEmail:        String(data.get("newEmail") || "").trim(),
+            currentPassword: String(data.get("currentPassword") || ""),
+          };
+        } else {
+          const codeRaw = String(data.get("code") || "");
+          body = { code: codeRaw.replace(/\D/g, "").slice(0, 6) };
+        }
+        const r = await fetch("/api/account/change-email", {
+          method: "POST", headers: authHeaders(), credentials: "include",
+          body: JSON.stringify(body),
+        });
+        const b = await r.json();
+        if (!r.ok || !b?.ok) throw new Error(b?.error || `ошибка ${r.status}`);
+
+        if (b.step === "code-sent") {
+          emPending = b.newEmail;
+          document.getElementById("em-target").textContent = b.newEmail;
+          emStep1.classList.add("hidden");
+          emStep2.classList.remove("hidden");
+          showMsg(emMsg, "ok", "код отправлен");
+        } else if (b.token) {
+          localStorage.setItem("musictech.token", b.token);
+          if (b.user) applyUser(b.user);
+          emPending = null;
+          emStep2.classList.add("hidden");
+          emStep1.classList.remove("hidden");
+          emForm.reset();
+          showMsg(emMsg, "ok", "e-mail успешно изменён");
+        }
+      } catch (err) { showMsg(emMsg, "err", err.message); }
+    });
+
+    function showMsg(el, kind, text) {
+      el.textContent = text;
+      el.className = "msg " + (kind === "ok"
+        ? "text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-lg px-3 py-2"
+        : "text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2");
+    }
+
+    // запуск
+    (async () => { await loadMe(); initTab(); })();
+  </script>
+</Base>
+
+<style>
+  :global(.acc-tab-btn) {
+    padding: 0.65rem 1.1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgb(71 85 105);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
+    background: transparent;
+    border-radius: 0;
+    cursor: pointer;
+  }
+  :global(.acc-tab-btn:hover)    { color: rgb(15 23 42); }
+  :global(.acc-tab-btn.is-active){ color: rgb(5 150 105); border-color: rgb(16 185 129); }
+</style>

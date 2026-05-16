@@ -10,6 +10,7 @@
 
 import type { APIRoute } from "astro";
 import {
+  buildSessionCookie,
   isValidEmail,
   issueToken,
   k,
@@ -67,16 +68,7 @@ export const POST: APIRoute = async ({ request }) => {
 };
 
 function sessionCookie(token: string): Record<string, string> {
-  return {
-    "set-cookie": [
-      `musictech_session=${token}`,
-      "Path=/",
-      "HttpOnly",
-      "Secure",
-      "SameSite=Lax",
-      `Max-Age=${60 * 60 * 24 * 30}`,
-    ].join("; "),
-  };
+  return { "set-cookie": buildSessionCookie(token, 60 * 60 * 24 * 30) };
 }
 
 function json(data: unknown, status = 200, extra: Record<string, string> = {}): Response {

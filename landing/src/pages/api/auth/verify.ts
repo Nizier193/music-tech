@@ -10,12 +10,14 @@
 
 import type { APIRoute } from "astro";
 import {
+  buildSessionCookie,
   isValidEmail,
   issueToken,
   k,
   normalizeEmail,
   rateLimit,
   redis,
+  saveUser,
 } from "../../../lib/auth";
 
 export const prerender = false;
@@ -81,11 +83,12 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // успех: создаём пользователя, удаляем pending
-    await r.set(k.user(email), {
+    await saveUser({
       email,
       name: pending.name,
       pwdHash: pending.pwdHash,
       createdAt: Date.now(),
+      plan: "open-beta",
     });
     await r.del(k.pending(email));
 
@@ -98,15 +101,7 @@ export const POST: APIRoute = async ({ request }) => {
 };
 
 function sessionCookie(token: string): Record<string, string> {
-  const cookie = [
-    `musictech_session=${token}`,
-    "Path=/",
-    "HttpOnly",
-    "Secure",
-    "SameSite=Lax",
-    `Max-Age=${60 * 60 * 24 * 30}`,
-  ].join("; ");
-  return { "set-cookie": cookie };
+  return { "set-cookie": buildSessionCookie(token, 60 * 60 * 24 * 30) };
 }
 
 function json(data: unknown, status = 200, extra: Record<string, string> = {}): Response {

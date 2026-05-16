@@ -8,6 +8,7 @@
  *   UPSTASH_REDIS_REST_TOKEN
  *   JWT_SECRET                любая длинная строка для подписи токенов
  *   APP_URL                   корень сайта, попадает в ссылки reset-password
+ *   ADMIN_EMAIL               email с правами админа (можно через запятую несколько)
  */
 
 import { Redis } from "@upstash/redis";
@@ -25,6 +26,7 @@ const env = {
   UPSTASH_REDIS_REST_TOKEN:  getenv("UPSTASH_REDIS_REST_TOKEN"),
   JWT_SECRET:                getenv("JWT_SECRET"),
   APP_URL:                   getenv("APP_URL", "https://musictech.tech"),
+  ADMIN_EMAIL:               getenv("ADMIN_EMAIL", ""),
 };
 
 function getenv(key: string, fallback?: string): string {
@@ -325,4 +327,148 @@ export const k = {
   user:        (email: string) => `user:${email}`,
   pending:     (email: string) => `pending:${email}`,
   resetToken:  (token: string) => `reset:${token}`,
+  // глобальный индекс всех зарегистрированных email-ов (sorted set по createdAt)
+  usersIndex:  "users:index",
 };
+
+// ---------------------------------------------------------------------------
+// типы и работа с пользователями
+// ---------------------------------------------------------------------------
+
+export type UserRole = "user" | "admin";
+
+export interface UserRecord {
+  email:     string;
+  name:      string;
+  pwdHash:   string;
+  createdAt: number;
+  plan?:     string;
+  // роль хранится не в redis, а вычисляется из ADMIN_EMAIL — чтобы не было
+  // соблазна повысить себя до админа через сторонний api
+}
+
+/** список email-ов с правами админа, нижний регистр */
+function adminEmails(): Set<string> {
+  return new Set(
+    (env.ADMIN_EMAIL || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+export function isAdmin(email: string): boolean {
+  return adminEmails().has(normalizeEmail(email));
+}
+
+export function roleOf(email: string): UserRole {
+  return isAdmin(email) ? "admin" : "user";
+}
+
+export async function getUser(email: string): Promise<UserRecord | null> {
+  const u = (await redis().get(k.user(email))) as UserRecord | null;
+  if (!u) return null;
+  return { plan: "open-beta", ...u, email };
+}
+
+export async function saveUser(u: UserRecord): Promise<void> {
+  const r = redis();
+  await r.set(k.user(u.email), { plan: "open-beta", ...u });
+  // в индексе храним email со скором = createdAt (для сортировки по дате)
+  await r.zadd(k.usersIndex, { score: u.createdAt, member: u.email });
+}
+
+export async function deleteUser(email: string): Promise<void> {
+  const r = redis();
+  await r.del(k.user(email));
+  await r.zrem(k.usersIndex, email);
+}
+
+export async function listUsers(
+  offset = 0,
+  limit = 50,
+): Promise<UserRecord[]> {
+  const r = redis();
+  const emails = (await r.zrange(k.usersIndex, offset, offset + limit - 1, {
+    rev: true,
+  })) as string[];
+  if (!emails || emails.length === 0) return [];
+  const records = await Promise.all(emails.map((e) => getUser(e)));
+  return records.filter((u): u is UserRecord => u !== null);
+}
+
+export async function countUsers(): Promise<number> {
+  return await redis().zcard(k.usersIndex);
+}
+
+// ---------------------------------------------------------------------------
+// сессия: извлечение payload из cookie или header authorization
+// ---------------------------------------------------------------------------
+
+export interface Session {
+  user: UserRecord;
+  role: UserRole;
+  token: string;
+}
+
+const SESSION_COOKIE = "musictech_session";
+
+/** парсит cookie header в Map для удобного чтения */
+function parseCookies(header: string | null): Map<string, string> {
+  const out = new Map<string, string>();
+  if (!header) return out;
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx === -1) continue;
+    const name = part.slice(0, idx).trim();
+    const value = part.slice(idx + 1).trim();
+    if (name) out.set(name, decodeURIComponent(value));
+  }
+  return out;
+}
+
+export function getTokenFromRequest(request: Request): string | null {
+  const auth = request.headers.get("authorization") || "";
+  if (auth.startsWith("Bearer ")) {
+    const t = auth.slice(7).trim();
+    if (t) return t;
+  }
+  const cookies = parseCookies(request.headers.get("cookie"));
+  return cookies.get(SESSION_COOKIE) || null;
+}
+
+/** возвращает сессию или null. не выкидывает ошибок — удобно для guard-ов */
+export async function getSessionFromRequest(
+  request: Request,
+): Promise<Session | null> {
+  const token = getTokenFromRequest(request);
+  if (!token) return null;
+  const payload = await verifyToken(token);
+  if (!payload?.sub) return null;
+  const user = await getUser(payload.sub);
+  if (!user) return null;
+  return { user, role: roleOf(user.email), token };
+}
+
+/** cookie-строка для set-cookie заголовка */
+export function buildSessionCookie(token: string, maxAgeSeconds: number): string {
+  return [
+    `${SESSION_COOKIE}=${token}`,
+    "Path=/",
+    "HttpOnly",
+    "Secure",
+    "SameSite=Lax",
+    `Max-Age=${maxAgeSeconds}`,
+  ].join("; ");
+}
+
+export function clearSessionCookie(): string {
+  return [
+    `${SESSION_COOKIE}=`,
+    "Path=/",
+    "HttpOnly",
+    "Secure",
+    "SameSite=Lax",
+    "Max-Age=0",
+  ].join("; ");
+}

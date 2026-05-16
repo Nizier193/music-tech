@@ -1,17 +1,20 @@
 ---
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// якорные ссылки (#features и т.п.) на главной — скроллят, на других
+// страницах — ведут на /#anchor. JS подстроит href при необходимости.
 const nav = [
-  { href: "#features",    label: "Возможности"   },
-  { href: "#how",         label: "Как это работает" },
-  { href: "#download",    label: "Скачать"        },
-  { href: "#faq",         label: "FAQ"            },
-  { href: `${base}/about`,label: "О нас"          },
+  { href: "#features", label: "Возможности",     anchor: true  },
+  { href: "#how",      label: "Как это работает", anchor: true  },
+  { href: "#download", label: "Скачать",          anchor: true  },
+  { href: "#faq",      label: "FAQ",              anchor: true  },
+  { href: `${base}/about`, label: "О нас",        anchor: false },
 ];
 ---
 
 <header class="sticky top-0 z-40 backdrop-blur border-b border-ink-200/60 bg-white/70">
-  <div class="container-soft flex h-16 items-center justify-between gap-6">
-    <a href={`${base}/`} class="flex items-center gap-2 group">
+  <div class="container-soft flex h-16 items-center justify-between gap-4">
+    <a href={`${base}/`} class="flex items-center gap-2 group shrink-0">
       <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
         <defs>
           <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
@@ -30,23 +33,169 @@ const nav = [
       </span>
     </a>
 
-    <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-ink-700">
+    <nav class="hidden lg:flex items-center gap-7 text-sm font-medium text-ink-700">
       {nav.map((n) => (
-        <a href={n.href} class="hover:text-brand-700 transition">
+        <a
+          href={n.href}
+          data-anchor={n.anchor ? "1" : null}
+          class="nav-link hover:text-brand-700 transition"
+        >
           {n.label}
         </a>
       ))}
     </nav>
 
-    <div class="flex items-center gap-2">
-      <a href={`${base}/login`} class="btn-ghost hidden sm:inline-flex">Войти</a>
-      <a href="#download" class="btn-primary">
+    <div class="flex items-center gap-2 shrink-0">
+      <!-- desktop CTA -->
+      <a href={`${base}/login`} data-auth="anon" class="btn-ghost hidden sm:inline-flex">Войти</a>
+      <a href={`${base}/account`} data-auth="user" class="btn-ghost hidden sm:inline-flex">Кабинет</a>
+      <a href={`${base}/admin`} data-auth="admin" class="btn-ghost hidden sm:inline-flex !text-red-700">Админ</a>
+      <a href="#download" data-anchor="1" class="btn-primary hidden sm:inline-flex">
         Скачать
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 5v14" /><path d="M19 12l-7 7-7-7" />
         </svg>
       </a>
+
+      <!-- mobile hamburger -->
+      <button
+        id="menu-btn"
+        aria-label="Меню"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        class="lg:hidden inline-flex items-center justify-center size-10 rounded-lg border border-ink-200 hover:bg-ink-50 transition"
+      >
+        <svg id="menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="3" y1="6"  x2="21" y2="6"  />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+        <svg id="menu-icon-close" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="6" y1="6" x2="18" y2="18" />
+          <line x1="6" y1="18" x2="18" y2="6" />
+        </svg>
+      </button>
     </div>
   </div>
+
+  <!-- mobile drawer -->
+  <nav
+    id="mobile-menu"
+    class="lg:hidden hidden border-t border-ink-200 bg-white/95 backdrop-blur"
+  >
+    <div class="container-soft py-4 flex flex-col gap-1">
+      {nav.map((n) => (
+        <a
+          href={n.href}
+          data-anchor={n.anchor ? "1" : null}
+          class="nav-link mobile-link block px-3 py-3 rounded-lg text-base font-medium text-ink-800 hover:bg-ink-50"
+        >
+          {n.label}
+        </a>
+      ))}
+      <hr class="my-2 border-ink-200" />
+      <a href={`${base}/login`}    data-auth="anon"  class="mobile-link block px-3 py-3 rounded-lg text-base font-medium text-ink-800 hover:bg-ink-50">Войти</a>
+      <a href={`${base}/register`} data-auth="anon"  class="mobile-link block px-3 py-3 rounded-lg text-base font-medium text-ink-800 hover:bg-ink-50">Регистрация</a>
+      <a href={`${base}/account`}  data-auth="user"  class="mobile-link block px-3 py-3 rounded-lg text-base font-medium text-ink-800 hover:bg-ink-50">Личный кабинет</a>
+      <a href={`${base}/admin`}    data-auth="admin" class="mobile-link block px-3 py-3 rounded-lg text-base font-medium text-red-700 hover:bg-red-50">Админка</a>
+      <a href="#download" data-anchor="1" class="btn-primary mt-2 mobile-link">Скачать MusicTech</a>
+    </div>
+  </nav>
 </header>
+
+<script is:inline>
+  // ───────────── hamburger toggle ─────────────
+  (function () {
+    const btn   = document.getElementById("menu-btn");
+    const menu  = document.getElementById("mobile-menu");
+    const open  = document.getElementById("menu-icon-open");
+    const close = document.getElementById("menu-icon-close");
+    if (!btn || !menu) return;
+
+    function setOpen(state) {
+      btn.setAttribute("aria-expanded", state ? "true" : "false");
+      menu.classList.toggle("hidden", !state);
+      open.classList.toggle("hidden", state);
+      close.classList.toggle("hidden", !state);
+      document.body.style.overflow = state ? "hidden" : "";
+    }
+
+    btn.addEventListener("click", () => {
+      setOpen(menu.classList.contains("hidden"));
+    });
+
+    // закрываем drawer при клике по любой ссылке внутри
+    menu.querySelectorAll("a").forEach((a) => {
+      a.addEventListener("click", () => setOpen(false));
+    });
+  })();
+
+  // ───────────── якорные ссылки с других страниц ─────────────
+  // если href="#features", а текущая страница не "/" — заменяем на "/#features"
+  (function () {
+    const path = location.pathname.replace(/\/+$/, "");
+    const onHome = path === "" || path === "/index" || path === "/index.html";
+    if (onHome) return; // на главной — оставляем как есть, скролл сработает
+
+    document.querySelectorAll('a[data-anchor="1"]').forEach((a) => {
+      const href = a.getAttribute("href") || "";
+      if (href.startsWith("#")) {
+        a.setAttribute("href", "/" + href);
+      }
+    });
+  })();
+
+  // ───────────── показываем нужные кнопки auth-состояния ─────────────
+  // anon  - есть всегда у незалогиненных
+  // user  - залогиненный пользователь
+  // admin - админ (видит кнопку "Админ")
+  (function () {
+    function applyAuth() {
+      const token = localStorage.getItem("musictech.token");
+      const role  = localStorage.getItem("musictech.role") || "user";
+
+      const showFor = token ? (role === "admin" ? ["user", "admin"] : ["user"]) : ["anon"];
+
+      document.querySelectorAll("[data-auth]").forEach((el) => {
+        const want = el.getAttribute("data-auth");
+        if (!want) return;
+        const visible = showFor.includes(want);
+        // на десктопе используем sm:inline-flex - переключаем через hidden
+        if (visible) {
+          el.classList.remove("hidden");
+        } else {
+          el.classList.add("hidden");
+        }
+      });
+    }
+
+    // первичный прогон
+    applyAuth();
+
+    // если токен есть - сверяемся с сервером (вдруг истёк), и заодно подгружаем роль
+    const token = localStorage.getItem("musictech.token");
+    if (token) {
+      fetch("/api/auth/me", {
+        headers: { authorization: "Bearer " + token },
+        credentials: "include",
+      })
+        .then((r) => r.json())
+        .then((b) => {
+          if (b?.ok && b?.user) {
+            localStorage.setItem("musictech.email", b.user.email);
+            localStorage.setItem("musictech.name",  b.user.name || "");
+            localStorage.setItem("musictech.role",  b.user.role || "user");
+          } else {
+            // токен невалиден - чистим
+            localStorage.removeItem("musictech.token");
+            localStorage.removeItem("musictech.role");
+          }
+          applyAuth();
+        })
+        .catch(() => {});
+    }
+  })();
+</script>
