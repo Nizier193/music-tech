@@ -1,0 +1,220 @@
+---
+alwaysApply: true
+---
+
+# Playbook: MusicTech — Real-Time Score Following
+
+Дополняет `code-design.mdc`. При конфликте приоритет у `code-design.mdc`.
+
+## Архитектура системы
+
+Pipeline (realtime): MIDI -> [D] LiveMidiReceiver -> [B] ScoreFollower
+(HMM/HSMM/OLTW/Hybrid) -> [C] TempoTracker -> [C] ScoreEventDispatcher
+-> [C] PygameMidiOrchestra / DynamicOrchestraPlayer -> Звуковая карта.
+Поверх — лёгкий RL-агент темпа: видит state трекера, выдаёт `a_t`
+каждые 50 мс на горизонт 200–500 мс вперёд.
+
+Репозиторий устроен в три ветви:
+
+```
+music-tech/
+├── article/                    LaTeX статья + тезисы + презентация
+│   ├── main.tex / main.pdf     теоретическая статья (REVTeX 4-2)
+│   ├── тезисы.tex / тезисы.pdf 2-страничные конференц-тезисы
+│   ├── presentation/           beamer 35 слайдов (Madrid + seahorse)
+│   ├── sections/               9 разделов + 4 приложения
+│   ├── figures/tikz/           ч/б TikZ-диаграммы
+│   ├── docs/                   командные .md (literature, datasets, …)
+│   └── references.bib          35+ источников
+├── src/musictech-app/          MVP: код + данные + ноутбуки
+│   ├── musictech/              чистый пакет (13 sub-packages)
+│   ├── *.py (root)             legacy shim-ы + GUI + CLI калибраторы
+│   ├── midi/                   MIDI-библиотека пьес + DynamicOrchestra
+│   ├── assets/                 piano + orchestra samples
+│   ├── notebooks/              9 .ipynb по одному компоненту
+│   ├── papers/                 локальные PDF тезисов
+│   └── docs/                   ARCHITECTURE / CODE_MAP / PROJECT_ANALYSIS / analysis
+├── README.md, ROADMAP.md
+└── ScoreFollowing.{tex,pdf}    методичка по DTW / OLTW / HMM от лаборатории
+```
+
+### Слои `musictech/` (13 sub-packages)
+
+- `utils/`: `compat`, `portable_paths` (без numpy / mido / pygame)
+- `core/`: pure-numpy ML + DTOs (`dto.py`, `followers/hmm.py`,
+  `followers/hsmm.py`, `followers/oltw.py`, `followers/hybrid/`)
+- `io/midi/`: `LiveMidiReceiver`, `MidiEmulator`, `iter_midi_note_events`
+- `audio/`: микрофонный ввод (placeholder)
+- `preprocessing/`: `midi_to_score`, `hand_splitter` (placeholder)
+- `datasets/`: `synthetic`, `asap` (placeholder), `maestro` (placeholder)
+- `playback/`: `TempoTracker`, `ScoreEventDispatcher`,
+  `orchestra/{mock,pygame_midi}`
+- `evaluation/`: метрики (placeholder)
+- `calibration/`: калибраторы (placeholder)
+- `pipelines/`: high-level сценарии (placeholder)
+- `validation/`: ручные валидаторы (placeholder)
+- `rl/`: `state`, `reward`, `env` (`ScoreFollowingEnv`), `policy`
+  (`MLPPolicy`)
+- `cli/`: `dataset_viewer`, `list_midi`, `main_legacy`
+- `gui/`: placeholder (GUI живёт в `interactive_tester.py` в корне)
+
+В корне `musictech-app/` лежат **13 тонких shim-ов** (`compat.py`,
+`hmm_follower.py`, …, `main.py`), реэкспортирующих из `musictech.*` —
+их трогать **только синхронно с целевыми модулями**, чтобы не
+сломать `interactive_tester.py` и калибровочные CLI.
+
+## Процесс разработки
+
+Обязательно:
+- Перед кодом: сформулировать **что делаем**, **где меняем**,
+  **как проверим**.
+- Работать маленькими шагами: не больше 2–3 файлов за один цикл.
+- Каждая существенная фича = новая ячейка в `notebooks/` или
+  smoke-test в `src/musictech-app/`.
+- Smoke-test: должен прогонять HMM / HSMM / OLTW / Hybrid на
+  ideal-кейсе из `generated_dataset/` и фан-аут диспетчера.
+
+Нельзя:
+- Рефакторинг больше 3 файлов за раз без согласования.
+- Менять публичный API followers (`process_event(pitch, timestamp)`)
+  — на нём держится весь pipeline и `HybridScoreFollower`.
+- Писать новый код в legacy-файлах в корне (`interactive_tester.py`,
+  `midi_workspace.py`, …) — только в `musictech/`.
+
+## Что НЕ трогать без причины
+
+| Файл | Размер | Почему |
+|---|---:|---|
+| `interactive_tester.py` | 5 KLOC | pygame GUI, перестановка ломает запуск |
+| `midi/real_orchestra_player.py` | 1.3 KLOC | сэмплер Philharmonia, самодостаточен |
+| `midi_workspace.py` | 0.8 KLOC | pipeline с unicode-нормализацией и subprocess |
+| `calibrate_hybrid_profile.py` | 0.7 KLOC | grid-search калибратор |
+| `autoplay_offset_benchmark.py` | 0.5 KLOC | бенчмарк, источник истины по метрикам |
+| `stress_test_hybrid.py` | 0.7 KLOC | большой набор сценариев |
+
+В эти файлы можно **добавлять** новые опциональные параметры через
+kwargs со значением по умолчанию. Менять существующие сигнатуры —
+нельзя без миграции всех вызывателей.
+
+## Работа с трекером (HMM / HSMM / OLTW / Hybrid)
+
+- Все четыре следящих наследуют одну сигнатуру:
+  `process_event(pitch, timestamp) -> int` (возвращает `score_index`).
+- HMM держит `alpha: np.ndarray` shape `(N,)`, нормализуется на сумму
+  на каждом шаге.
+- HSMM имеет 4 перехода (stay/advance/skip/leap), переходы зависят от
+  `elapsed / nominal_duration`. Это **эвристика**, не канонический
+  Cont 2010. Полная реализация Cont — следующий приоритет.
+- OLTW хранит только две колонки DTW (`prev_col`, `curr_col`),
+  память `O(N)`. RunCount fail-safe (`max_run = 3`) принудительно
+  двигает позицию, если она зависла.
+- Hybrid: HSMM как primary, OLTW как fallback по `confidence_threshold`,
+  плюс anchor-window search (template-matching по pitch +
+  temp-fitting последних K событий) для крупных resync.
+
+## Работа с MIDI
+
+- Все MIDI-операции — через `mido` (объявлено в `requirements.txt`).
+- В hot path (`process_event`) MIDI не парсим — на вход уже идут
+  `{pitch, timestamp}` dict-ы.
+- Файловый парсинг — `iter_midi_note_events(path)` в
+  `musictech.io.midi.parser` (один-в-один как ноутбук
+  `02_score_format.ipynb`).
+- Запись MIDI — через `musictech.datasets.synthetic.write_midi(...)`,
+  не plain `mido.MidiFile().save()`.
+
+## Работа с RL-слоем
+
+Состояние `s_t ∈ ℝ¹⁸` собирается **строго**:
+
+```
+s_t = (alpha_summary,    # 7  — max, entropy, argmax/N, top3_mass, top3 indices
+       tempo_history,    # 5  — K=5 последних оценок tempo_ratio
+       emission_errors,  # 5  — K=5 последних эмиссионных ошибок HSMM
+       position/N)       # 1  — относительная позиция
+```
+
+`7 + 5 + 5 + 1 = 18`. Менять `K` или сжатие `alpha` — это смена
+размерности, потребует переобучения политики. Сначала согласовать.
+
+Награда `r_t` (формула (1) тезисов):
+
+```
+r_t = -|t_render - t_perf|  -  λ * L_align(t)  -  μ * (a_t - a_{t-1})²
+```
+
+Все три члена живут в `RLReward.sync_error`, `RLReward.alignment_error`,
+`RLReward.tempo_jerk` — отдельно, для диагностики PPO.
+
+## Тестирование
+
+- Реальный smoke-test: 7 этапов в стиле `_smoke_test.py` (см. git
+  history) — импорты + shim-ы + dataset + трекеры + диспетчер +
+  parser + RL skeleton.
+- Юнит-тесты к новым модулям — рядом, в `musictech/.../tests/` или
+  через ноутбук в `notebooks/`.
+- Калибровка не считается тестом — это grid-search, у неё свой CLI.
+- Pygame / hardware MIDI **не запускать в тестах**. `LiveMidiReceiver`
+  / `MidiEmulator` проверяются через моки `mido.MidiFile`.
+
+## Сборка артефактов
+
+- Статья: `cd article && .\build.ps1` (pdflatex × 2, latexmk).
+- Тезисы: `pdflatex тезисы.tex × 2`.
+- Презентация: `cd article/presentation && .\build.ps1`
+  (**pdflatex × 2**, не xelatex). Madrid + seahorse + T2A.
+- MVP smoke: `cd src/musictech-app && python -c "..."` (см. README).
+- Графики Рахманинова: `cd article/presentation/figures && python generate_plots.py`.
+
+## Текущий статус: v1.0-pre-conf (Научный Телеграф)
+
+### Готово
+- Статья: 18 страниц, 35+ ссылок, 8 TikZ-фигур, 4 приложения (HMM,
+  OLTW, HSMM, RL).
+- Тезисы: 2 страницы, формула (1) и РИС. 1, утверждены командой.
+- Презентация: 35 слайдов в фирменном стиле (Madrid + seahorse),
+  3 автора (Новицкий, Борисов, Варламов), вывод DTW + HMM Forward
+  + numerical examples + MDP-формализация + обоснование reward
+  + 16 источников литературы.
+- Код MVP: 13 sub-packages в `musictech/`, 13 shim-ов в корне.
+  `interactive_tester.py` запускается без правок.
+- Smoke-test: 7/7 этапов проходят (импорты, dataset, 4 трекера на
+  ideal, dispatcher fan-out, MIDI parser, RL skeleton с 18-D state).
+
+### В плане
+1. Импортёр ASAP в наш формат
+   (`musictech/datasets/asap.py`) — блокер для всего обучения.
+2. Метрики (`musictech/evaluation/`): alignment accuracy,
+   onset-error @ 50/100/250 мс, recovery latency, steady-tempo std.
+3. `ScoreFollowingEnv` (Gymnasium) поверх живого
+   `HybridScoreFollower` + симулятор солиста (rubato по Repp 1995).
+4. Behavior Cloning на ASAP: регрессия `s_t -> a*_t` (MLP 2×64).
+5. PPO + KL-penalty против ухода от `π_BC`.
+6. Канонический HSMM по Cont 2010 (явные `p_i(τ)`, не эвристика).
+
+### Идеи на будущее
+
+1. Микрофонный вход (`musictech/audio/`): онсет-детектор + chroma
+   эмиссии для HSMM вместо одиночного pitch.
+2. Beam-HSMM для крупных пьес (4000+ states) — keep top-B beams
+   вместо полного `α`, бюджет 20 мс.
+3. Учёт структурных переходов (повтор, пропуск секции) — Nakamura 2015.
+4. Web UI: HTML+CSS landing + `.exe` installer + in-app
+   авторизация через сайт (стояло в roadmap, низкий приоритет).
+5. CU-Concerto-2026: собственный датасет солист+оркестр (записи
+   консерватории, рейтинги от музыкантов для preference learning).
+
+## Файлы, которые НЕ трогать
+
+- `article/main.pdf`, `article/тезисы.pdf`,
+  `article/presentation/presentation.pdf` — собранные артефакты,
+  пересобираются `build.ps1`-ами; правки от руки запрещены.
+- `ScoreFollowing.pdf` — методичка от лаборатории, исходник в
+  `ScoreFollowing.tex` рядом.
+- `src/musictech-app/midi/library/*/workspace.json` — мета о
+  импортированных пьесах, генерируется `midi_workspace.py`.
+- `src/musictech-app/assets/orchestra_samples/`,
+  `src/musictech-app/assets/piano_samples/` — большие mp3, не
+  редактировать, только новые добавлять.
+- `.venv/`, `__pycache__/`, `*.aux`, `*.synctex.gz`, `*.fls`,
+  `*.fdb_latexmk` — артефакты сборки, в `.gitignore`.

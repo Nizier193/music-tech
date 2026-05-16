@@ -1,0 +1,204 @@
+---
+alwaysApply: true
+---
+
+# Оформление кода: MusicTech
+
+## Именование
+
+Обязательно:
+- Классы: двухсложные, PascalCase, отражают роль (`ScoreFollowerHMM`,
+  `HybridScoreFollower`, `TempoTracker`, `ScoreEventDispatcher`,
+  `PygameMidiOrchestra`, `LiveMidiReceiver`, `MidiEmulator`, `MLPPolicy`).
+- Функции: `action_name` (`process_event`, `compute_reward`,
+  `generate_dataset`, `iter_midi_note_events`, `summarize_alpha`,
+  `encode_state`, `convert_to_score`).
+- Переменные: понятные, читаемые, по названию сразу ясно что внутри.
+- Модули: snake_case, отражают содержимое (`hmm_follower.py`,
+  `score_loader.py`, `event_dispatcher.py`, `state_encoder.py`).
+- Константы: UPPER_SNAKE_CASE (`DEFAULT_TEMPO`, `SYNC_ERROR_CLIP`,
+  `HYBRID_PROFILE_TUNING_KEYS`, `DEFAULT_TICKS_PER_BEAT`).
+
+Переменные - примеры:
+```python
+# правильно - сразу понятно что это
+midi_event = {"pitch": 64, "timestamp": 1.234}
+predicted_index = follower.process_event(midi_event)
+tempo_ratio = tempo_tracker.update(predicted_index, midi_event["timestamp"])
+alpha_summary = summarize_alpha(hsmm.alpha, hsmm.current_state_position)
+hybrid_pred = [hybrid.process_event(int(ev["pitch"]), float(ev["timestamp"])) for ev in performance]
+
+# неправильно - непонятно, сокращения, абстракция
+e = {"pitch": 64, "timestamp": 1.234}
+p = follower.process_event(e)
+tr = tt.update(p, e["timestamp"])
+a = summarize_alpha(hsmm.alpha, hsmm.current_state_position)
+res = [h.process_event(int(x["pitch"]), float(x["timestamp"])) for x in perf]
+```
+
+Нельзя:
+- однобуквенные переменные (кроме `i`, `j`, `t` в DP/циклах и `N`, `T` в формулах HMM/DTW)
+- бессмысленные сокращения (`tmp`, `val`, `res`, `obj`, `data`, `ev`)
+- замудренные конструкции — если можно написать проще, пиши проще
+
+## Типизация
+
+Обязательно:
+- Все параметры функций с типами через `typing` / PEP 604.
+- Возвращаемый тип у каждой функции.
+- Для DTO между слоями — `dataclass(frozen=True)` или `TypedDict`,
+  всё в `musictech.core.dto`.
+- При 3+ параметрах разворачивать вызов на несколько строк:
+
+```python
+result = compute_reward(
+    action=action,
+    previous_action=RLAction(tempo_coefficient=1.0),
+    t_render=1.05,
+    t_perf=1.00,
+    alignment_loss=0.02,
+)
+```
+
+Все типы DTO определены **один раз** в `musictech/core/dto.py`
+(`ScoreNote`, `PerformanceEvent`, `AlphaSummary`, `FollowerOutput`,
+`TempoEstimate`, `RLObservation`, `RLAction`, `RLReward`). Новые DTO
+тоже идут туда, не плодим по модулям.
+
+## Конфигурация
+
+- Per-piece гиперпараметры HSMM/OLTW/гибрида — через
+  `*.hybrid_profile.json` (см. `HYBRID_PROFILE_TUNING_KEYS`),
+  не в коде.
+- Глобальные дефолты — константы модуля (`DEFAULT_LAMBDA`,
+  `DEFAULT_MU`, `SYNC_ERROR_CLIP` в `musictech.rl.reward`).
+- Никогда не хардкодить пути к MIDI / score — через
+  `musictech.utils.portable_paths.resolve_project_path`.
+
+## Realtime hot path
+
+Обязательно:
+- В `process_event(...)` и `update(...)` — только `numpy`. Никаких
+  `mido`, `pygame`, файловых I/O, аллокаций.
+- `HistoryBuffer` использует pre-allocated `np.ndarray`. Никаких
+  `collections.deque` или `list` с растущей длиной.
+- Логирование внутри hot path запрещено (заводит GIL и ломает 20 мс
+  бюджет). Метрики собираем через диагностические поля DTO
+  (`FollowerOutput.confidence`, `RLReward.sync_error`).
+- Если очень нужно — pre-computed counters + flush после прогона.
+
+Hot path:
+```python
+def process_event(self, pitch: Any, timestamp: float) -> int:
+    """берет одну midi ноту и возвращает индекс state в партитуре"""
+    observed_pitches = self._coerce_observed_pitches(pitch)
+    # ... только numpy операции ...
+    return self.current_state_index
+```
+
+Не hot path (CLI, training, evaluation):
+- `matplotlib`, `pandas`, file I/O, `print` — пожалуйста.
+
+## Функции и классы
+
+Обязательно:
+- Каждая функция самодостаточна и решает одну задачу.
+- Не создавать одноразовые переменные: подставлять в вызов напрямую.
+- Если функцию можно разделить на несколько: разделяй.
+- Не более 5 `self.` атрибутов в `__init__` (исключение —
+  `HybridScoreFollower`: там их ~30 из-за `HYBRID_PROFILE_TUNING_KEYS`,
+  это исторический legacy, новые followers так писать нельзя).
+
+Нельзя:
+- `try/except` для маскировки ошибок: только под конкретные
+  ожидаемые исключения (`UnicodeDecodeError`, `json.JSONDecodeError`,
+  `ModuleNotFoundError` для optional deps) с явной обработкой.
+- `raise` в realtime-followers и playback-классах без необходимости:
+  лучше вернуть последний валидный `score_index` и записать диагностику
+  в поле объекта (`last_resynced`, `last_anchor_target`).
+- Импорты внутри функций (кроме тяжёлых опциональных: `pygame.midi`
+  под `try / ModuleNotFoundError`, `matplotlib` в ноутбуках).
+- Магические методы без реальной необходимости. `__enter__` /
+  `__exit__` — только для классов с реальными ресурсами
+  (`LiveMidiReceiver`, `ScoreEventDispatcher`).
+
+## Комментарии и docstrings
+
+Стиль: как будто живой человек пишет с клавиатуры, неформально, с
+маленькой буквы. Технические термины — на английском как есть
+(`HMM`, `Forward`, `DTW`, `OLTW`, `rubato`, `MIDI`).
+
+Формат:
+- `"""..."""` docstring **над функцией / классом**.
+- НЕ комментировать строки решёткой `#` (исключение: пояснение
+  магической константы или неочевидный алгоритмический трюк).
+
+Примеры правильных комментариев:
+
+```python
+"""берет одну midi ноту и обновляет alpha — возвращает текущий state"""
+
+"""считает forward-обновление hmm — b_i(o) * sum_j alpha_t(j) * a_ji"""
+
+"""гибрид hsmm + oltw: если confidence > порога — берем hsmm, иначе oltw"""
+
+"""anchor recovery: ищем последние K событий как окно в партитуре,
+   если совпадение лучше текущей позиции на margin — делаем resync обоих трекеров"""
+
+"""состояние агента — 7 чисел alpha + K темпа + K эмиссии + позиция = 18"""
+```
+
+Примеры НЕПРАВИЛЬНЫХ комментариев:
+
+```python
+# Process MIDI event and update state
+# This function calculates forward update for HMM
+"""Обрабатывает MIDI событие."""
+"""Основная функция Forward-обновления HMM."""
+```
+
+Правила:
+- всё с маленькой буквы
+- тире обычное `-`, не длинное `—`
+- без точки в конце
+- без эмодзи, без caps lock, без пафоса
+- пишем по-русски, технические термины оставляем как есть
+  (alpha, hsmm, forward, midi, oltw, dtw, rubato)
+- не комментировать каждую строку — только над функциями/классами
+- если логика очевидна — не комментировать вообще
+- английский допустим в полноценных docstrings для публичных API
+  (`musictech.core.dto`, `musictech.rl.*`), потому что они уже так
+  написаны и согласованы со статьей
+
+## Структура модуля
+
+Каждый под-пакет в `musictech/` следует паттерну:
+- `__init__.py`: реэкспорт публичного API из подмодулей
+- `models.py` / `dto.py`: dataclass/TypedDict модели данных слоя
+- Остальные файлы: одна ответственность на файл
+
+Примеры:
+- `musictech/core/followers/`: `hmm.py`, `hsmm.py`, `oltw.py`,
+  `hybrid/` (большой hybrid разбит на `profile.py` + `hybrid.py`).
+- `musictech/playback/`: `score_loader.py`, `events.py`,
+  `tempo_tracker.py`, `event_dispatcher.py`, `orchestra/mock.py`,
+  `orchestra/pygame_midi.py`.
+- `musictech/io/midi/`: `_helpers.py`, `receiver.py`, `emulator.py`,
+  `parser.py`.
+
+Если файл > 500 LOC — это плохой сигнал. `interactive_tester.py`
+(5 KLOC) и `midi/real_orchestra_player.py` (1.3 KLOC) — legacy,
+их рефакторить отдельно по плану.
+
+## LaTeX (article / presentation)
+
+- Без `\pause` в презентации (по запросу команды).
+- Формулы группировать: вывод -> рекурсия в боксе -> сложность ->
+  пример (см. `sections/06a-dtw-derivation.tex` для образца).
+- TikZ-схемы для повторного использования — в `figures/tikz/*.tex`,
+  не inline в section.
+- Графики из реальных данных — генерировать через
+  `figures/generate_plots.py`, не хранить временные `.csv`.
+- Подсветка ключевых слов в презентации — `\rlhi{...}` (синий
+  bold, палитра seahorse). Никаких `\textcolor{red}`, `\Huge` и
+  прочего хаоса.
