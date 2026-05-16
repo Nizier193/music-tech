@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+# используется в:
+#   - interactive_tester
+
 import argparse
 import json
 import re

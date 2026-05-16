@@ -1,5 +1,8 @@
 """Compatibility shim — see :mod:`musictech.datasets.synthetic`."""
 
+# используется в:
+#   - legacy_cli.test_input_module
+
 from musictech.datasets.synthetic import (
     DEFAULT_OUTPUT_DIR,
     DEFAULT_TEMPO,

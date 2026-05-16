@@ -1,4 +1,10 @@
-"""Shared MIDI helpers used by both the live receiver and the file emulator."""
+"""
+внутренние утилиты для midi-источников: receiver, emulator, parser
+
+mido у нас опциональный (его может не быть в окружении - например, в
+CI без midi-стека). _require_mido даёт человекочитаемую ошибку
+вместо ImportError на старте модуля
+"""
 
 from __future__ import annotations
 

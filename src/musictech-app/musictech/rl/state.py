@@ -1,27 +1,17 @@
-"""State encoding for the tempo prediction RL agent.
-
-The thesis (Fig. 1, eq. 1) defines the agent state as
-
-    s_t = (α̂_t, τ_{t-K:t}, e_{t-K:t}, φ̂(t) / N)
-
-where
-    α̂_t                       — compressed posterior of the follower over
-                                  score positions (``AlphaSummary``);
-    τ_{t-K:t}                  — last K tempo estimates;
-    e_{t-K:t}                  — last K emission errors;
-    φ̂(t) / N                  — normalized current score position.
-
-This module provides:
-
-1. A compression of the full forward distribution ``α_t`` into
-   ``AlphaSummary`` (used both at training and inference time).
-2. A ``HistoryBuffer`` class for rolling K-element windows that survives
-   resets and never allocates inside the realtime hot path.
-3. ``encode_state(...)`` that assembles the four parts into the typed
-   ``RLObservation`` DTO declared in ``musictech.core.dto``.
-
-The code is pure numpy. No torch, no gymnasium, no pygame.
 """
+сборка состояния s_t для RL-агента темпа
+
+s_t = (alpha_summary, tempo_history, emission_errors, position) =
+7 + 5 + 5 + 1 = 18 чисел. размерность не зависит от длины пьесы:
+полный alpha по N позициям сжимается в 7 скаляров
+
+HistoryBuffer - pre-allocated np.ndarray для скользящего окна
+последних K оценок. push в hot path не аллоцирует
+"""
+
+# используется в:
+#   - musictech.rl
+#   - musictech.rl.env
 
 from __future__ import annotations
 

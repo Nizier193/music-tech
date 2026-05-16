@@ -6,6 +6,10 @@ because some legacy callers compare it with paths derived from
 in place so both views agree on the same value.
 """
 
+# используется в:
+#   - interactive_tester
+#   - midi_workspace
+
 from pathlib import Path
 
 import musictech.utils.portable_paths as _impl

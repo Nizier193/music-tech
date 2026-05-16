@@ -1,11 +1,13 @@
-"""Old realtime HMM CLI (``main.py`` in the repo root).
-
-Kept for backwards compatibility with the original demo: feeds a
-``.mid`` file or a live MIDI port through :class:`ScoreFollowerHMM`
-and prints predictions to stdout. The boss-level tracker is the
-hybrid follower (:class:`HybridScoreFollower`) — this CLI is
-educational rather than canonical.
 """
+старый минималистичный cli для score-following через HMM-трекер
+
+читает score.json + midi-файл (или live-порт), прогоняет
+ScoreFollowerHMM, печатает прогноз позиций. educational-уровень -
+боевой стек идёт через interactive_tester + hybrid_fusion
+"""
+
+# используется в:
+#   - main
 
 from __future__ import annotations
 

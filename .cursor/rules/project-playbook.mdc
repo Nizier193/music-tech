@@ -28,7 +28,11 @@ music-tech/
 │   └── references.bib          35+ источников
 ├── src/musictech-app/          MVP: код + данные + ноутбуки
 │   ├── musictech/              чистый пакет (13 sub-packages)
-│   ├── *.py (root)             legacy shim-ы + GUI + CLI калибраторы
+│   ├── *.py (root)             только shim-ы (13) + GUI (interactive_tester)
+│   │                           + midi_workspace (pipeline subprocess target)
+│   ├── legacy_cli/             толстые CLI-калибраторы (5 файлов):
+│   │                           calibrate_hybrid_profile, autoplay_offset_benchmark,
+│   │                           stress_test_hybrid, playback_validator, test_input_module
 │   ├── midi/                   MIDI-библиотека пьес + DynamicOrchestra
 │   ├── assets/                 piano + orchestra samples
 │   ├── notebooks/              9 .ipynb по одному компоненту
@@ -88,9 +92,11 @@ music-tech/
 | `interactive_tester.py` | 5 KLOC | pygame GUI, перестановка ломает запуск |
 | `midi/real_orchestra_player.py` | 1.3 KLOC | сэмплер Philharmonia, самодостаточен |
 | `midi_workspace.py` | 0.8 KLOC | pipeline с unicode-нормализацией и subprocess |
-| `calibrate_hybrid_profile.py` | 0.7 KLOC | grid-search калибратор |
-| `autoplay_offset_benchmark.py` | 0.5 KLOC | бенчмарк, источник истины по метрикам |
-| `stress_test_hybrid.py` | 0.7 KLOC | большой набор сценариев |
+| `legacy_cli/calibrate_hybrid_profile.py` | 0.7 KLOC | grid-search калибратор |
+| `legacy_cli/autoplay_offset_benchmark.py` | 0.5 KLOC | бенчмарк, источник истины по метрикам |
+| `legacy_cli/stress_test_hybrid.py` | 0.7 KLOC | большой набор сценариев |
+| `legacy_cli/playback_validator.py` | 0.3 KLOC | smoke-тест диспетчера (требует pygame) |
+| `legacy_cli/test_input_module.py` | 0.2 KLOC | юнит-тесты MIDI-входа (требует pygame) |
 
 В эти файлы можно **добавлять** новые опциональные параметры через
 kwargs со значением по умолчанию. Менять существующие сигнатуры —

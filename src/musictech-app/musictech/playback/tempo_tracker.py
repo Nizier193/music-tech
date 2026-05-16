@@ -1,24 +1,17 @@
-"""Tempo tracking from score progress and event timestamps.
-
-The tracker estimates ``tempo_ratio = nominal_elapsed / actual_elapsed``
-over the last few score-state changes. The ratio feeds the orchestra
-renderer so it can stretch / compress the accompaniment in realtime.
-
-The actual estimator is intentionally simple:
-
-- Keep up to ``history_size`` recent ``(position, event_time)`` control
-  points.
-- For each new position change, compute one observation per anchor in
-  the history that is at least ``min_nominal_window`` seconds away on
-  the score timeline.
-- The new ``tempo_ratio`` is the **median** of the raw observations,
-  with a dead-zone (``deadzone_ratio``) to avoid flickering and an
-  ``idle_reset_seconds`` timeout that snaps back to the initial ratio
-  when the performer stops playing.
-
-Anything more sophisticated (Kalman / RL agent) belongs to the
-``musictech.rl`` layer and consumes this tracker as a baseline.
 """
+оценка темпа исполнения по скользящему окну score-state-ов
+
+на каждое изменение score_index вычисляем tempo_ratio как медиану
+последних observations. dead zone не даёт темпу дёргаться от мелких
+флуктуаций, idle-reset возвращает к initial_tempo_ratio если
+исполнитель замолчал на idle_reset_seconds
+
+вход для оркестра: текущий tempo_ratio используется чтобы растянуть
+или сжать midi оркестра в реальном времени
+"""
+
+# используется в:
+#   - output_dispatcher
 
 from __future__ import annotations
 

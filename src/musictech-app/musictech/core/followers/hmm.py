@@ -1,17 +1,17 @@
-"""Realtime score-following with a duration-aware Forward update.
-
-Single-state-per-note Hidden Markov Model with three transitions
-(stay / advance / skip). Transition probabilities are recomputed at
-each event from the elapsed time spent in the current state, which
-gives the model a soft notion of duration without the cost of a full
-Hidden Semi-Markov Model (see :mod:`.hsmm` for the duration-aware
-version).
-
-This follower is the simplest of the three and is mostly kept for
-educational and CLI purposes. The boss-level tracker used in the
-production pipeline is :class:`HybridScoreFollower` (see
-:mod:`.hybrid`).
 """
+скрытая марковская модель (rabiner 1989) для трекинга партитуры
+
+одно состояние на каждую ноту партитуры, эмиссии - гауссиана по pitch
+в полутонах, переходы между состояниями три типа: stay / advance / skip.
+веса переходов зависят от времени, проведённого в текущем state - это
+даёт мягкое представление о длительности нот без честного hsmm
+
+используется как обучающий пример и в cli main_legacy. в боевом стеке
+работает hybrid (см. .hybrid), внутри которого hsmm + oltw
+"""
+
+# используется в:
+#   - hmm_follower
 
 from __future__ import annotations
 

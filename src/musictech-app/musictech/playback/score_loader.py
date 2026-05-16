@@ -1,10 +1,13 @@
-"""Lightweight score-JSON loader shared by every playback component.
-
-The followers in :mod:`musictech.core.followers` also load scores, but
-they live behind a numpy-heavy API. Here we only need ``notes`` as
-plain dicts, so we keep a tiny duplicate that does not pull numpy
-just to deserialize JSON.
 """
+лёгкий загрузчик score.json для слоя playback
+
+фолловеры в musictech.core тоже грузят партитуру, но через numpy-API.
+здесь нужен только чистый python для tempo_tracker / dispatcher, без
+numpy-зависимости - поэтому свой мини-парсер
+"""
+
+# используется в:
+#   - output_dispatcher
 
 from __future__ import annotations
 

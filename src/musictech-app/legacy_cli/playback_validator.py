@@ -1,4 +1,13 @@
-from __future__ import annotations
+﻿from __future__ import annotations
+
+# legacy_cli sys.path bootstrap: shim-ы из корня musictech-app/ + соседи по legacy_cli/
+import sys as _sys
+from pathlib import Path as _Path
+_this_dir = _Path(__file__).resolve().parent
+_parent = _this_dir.parent
+for _p in (_parent, _this_dir):
+    if str(_p) not in _sys.path:
+        _sys.path.insert(0, str(_p))
 
 import json
 import sys

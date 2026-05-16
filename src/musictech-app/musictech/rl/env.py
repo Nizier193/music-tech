@@ -1,21 +1,16 @@
-"""Gymnasium environment wrapping a score follower.
-
-The agent observes the follower's compressed posterior plus a short
-history of tempo and emission errors, and outputs a tempo coefficient
-``a_t ∈ [a_min, a_max]`` that the orchestra renderer would apply over
-the next ``tick_seconds`` of music.
-
-The environment is **stateful**: it maintains rolling history buffers
-across ticks, advances a virtual playback clock, and re-uses the same
-:class:`HybridScoreFollower` instance for the whole episode.
-
-Gymnasium is an *optional* dependency. If ``gymnasium`` is installed the
-class inherits from :class:`gymnasium.Env` and exposes the standard
-``observation_space`` / ``action_space`` attributes. Otherwise we fall
-back to a duck-typed class that still works inside our own training
-loops but cannot be plugged directly into Stable-Baselines3. This keeps
-``musictech.rl`` usable for unit tests without pulling the full RL stack.
 """
+gymnasium-совместимая среда поверх живого HybridScoreFollower
+
+reset() инициализирует трекер на новой пьесе и симуляторе солиста,
+step(action) применяет темп a_t к рендеру оркестра и возвращает
+(observation, reward, terminated, truncated, info)
+
+симулятор солиста - параметрическое rubato по repp 1995 +
+сэмплирование ошибок по nakamura 2015
+"""
+
+# используется в:
+#   - musictech.rl
 
 from __future__ import annotations
 

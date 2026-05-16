@@ -1,14 +1,15 @@
-"""Simple ``pygame.midi`` orchestra: one chord per dispatcher event.
-
-Used as the default accompaniment renderer in the legacy CLI
-pipeline. Each follower-confirmed index triggers a brief chord at
-fixed velocity; the chord's release time is scaled by the current
-tempo ratio so the accompaniment stays in sync with the performer.
-
-For the richer sample-based orchestra (Philharmonia Strings, CC
-expression, reverb), see ``midi/real_orchestra_player.py`` —
-that 1.3 KLOC class is intentionally untouched by this refactor.
 """
+простой midi-оркестр через pygame.midi: один аккорд на событие
+
+на каждое предсказание трекера играет соответствующий аккорд из
+score.json. длительность аккорда масштабируется текущим tempo_ratio
+
+боевой плеер с сэмплами Philharmonia Strings живёт в
+midi/real_orchestra_player.py - этот класс используется как fallback
+"""
+
+# используется в:
+#   - output_dispatcher
 
 from __future__ import annotations
 

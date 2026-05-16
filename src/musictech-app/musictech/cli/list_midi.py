@@ -1,9 +1,11 @@
-"""Enumerate ``pygame.midi`` output devices and print them.
-
-Useful before launching anything that talks to a hardware
-synthesizer; ``pygame.midi.get_default_output_id`` returns -1 if no
-device exists, and this CLI lets you confirm what is plugged in.
 """
+печатает список midi output устройств доступных через pygame.midi
+
+запускается перед interactive_tester чтобы знать какой id выбрать
+"""
+
+# используется в:
+#   - list_midi
 
 from __future__ import annotations
 

@@ -1,20 +1,10 @@
-"""Per-piece tuning profile for :class:`HybridScoreFollower`.
+"""
+загрузка json-профиля гиперпараметров для hybrid-трекера
 
-The hybrid follower exposes ~30 hyperparameters (confidence threshold,
-anchor-window lengths, debounce widths, etc.). Tuning them globally
-does not work: different pieces have very different note densities
-and tempo behavior. We therefore keep a JSON profile next to each
-``score.json`` file (``<piece>.hybrid_profile.json``) with overrides
-for the hybrid follower constructor.
-
-A profile is a flat ``{key: value}`` mapping. Unknown keys are
-silently ignored, which lets calibrators add new tuning knobs without
-breaking older profiles. The list of accepted keys lives in
-:data:`HYBRID_PROFILE_TUNING_KEYS`.
-
-This module is intentionally tiny: it only knows how to find and load
-profiles. Profile *writing* is done by
-``calibrate_hybrid_profile.py`` and friends and uses these same keys.
+каждая пьеса имеет свой *.hybrid_profile.json рядом со score.json -
+там лежат подобранные калибровкой пороги (confidence, anchor margin,
+window sizes итд). hybrid_profile_tuning_keys ограничивает что можно
+переопределять, всё остальное игнорируется
 """
 
 from __future__ import annotations

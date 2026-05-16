@@ -36,6 +36,10 @@ Constraints on new code (enforced informally):
   imports.
 """
 
+# используется в:
+#   - live_midi_receiver
+#   - output_dispatcher
+
 __all__ = [
     "audio",
     "calibration",

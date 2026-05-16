@@ -23,6 +23,9 @@ without reducing total complexity. They will be revisited if/when the
 anchor search is replaced by a learned model.
 """
 
+# используется в:
+#   - hybrid_fusion
+
 from .hybrid import HybridScoreFollower
 from .profile import (
     HYBRID_PROFILE_FORMAT_VERSION,

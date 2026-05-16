@@ -1,8 +1,10 @@
-"""Cross-version ``zip`` polyfill.
-
-Python 3.10 introduced ``zip(..., strict=True)``. The project still
-targets older interpreters in CI, so we shim it manually.
 """
+полифил для zip(strict=True) на старых python (< 3.10)
+"""
+
+# используется в:
+#   - compat
+#   - hmm_follower
 
 from __future__ import annotations
 

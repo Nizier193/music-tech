@@ -1,14 +1,13 @@
-"""Convert a MIDI file into the project's ``score.json`` format.
-
-Groups note onsets within ``chord_epsilon`` seconds into single score
-states (chords). Each state carries a stable index, a chord (or single
-pitch), a nominal onset, and a nominal duration derived either from a
-matching ``note_off`` or from the next onset.
-
-This is the single entry point for importing a new piece into the
-score library. Calibrators expect every score to have been produced
-by this function (or to be in the exact same shape).
 """
+конвертация midi-файла в score.json формата проекта
+
+группирует note_on в "аккорды" по chord_epsilon секундам (по умолчанию
+0.03 сек), пишет nominal_onset и nominal_duration для каждого state.
+выход - канонический score.json который грузят все трекеры
+"""
+
+# используется в:
+#   - midi_to_score
 
 from __future__ import annotations
 

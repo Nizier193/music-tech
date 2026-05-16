@@ -1,14 +1,16 @@
-"""Worker-thread fan-out from follower predictions to subscribers.
-
-The dispatcher decouples the follower's hot path (which must stay
-under ~5 ms per event) from heavier downstream consumers like the
-orchestra renderer. Events are pushed onto a bounded queue and
-delivered to subscribers on a daemon worker thread.
-
-Drop policy: if the queue is full, the oldest event is dropped and a
-warning is logged. This matches the realtime contract — we prefer a
-recent prediction over a stale one.
 """
+воркер-тред, который разносит предсказания трекера подписчикам
+
+trackers не должны блокироваться на медленных подписчиках (оркестровый
+рендер, GUI). dispatcher принимает события в bounded-queue и доставляет
+их подписчикам в отдельном thread
+
+drop policy: при переполнении очереди старое событие выкидывается -
+realtime контракт важнее полноты лога
+"""
+
+# используется в:
+#   - output_dispatcher
 
 from __future__ import annotations
 

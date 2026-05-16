@@ -1,16 +1,17 @@
-"""Online Time Warping score follower with a RunCount fail-safe.
-
-Implements an incremental version of Dynamic Time Warping (Dixon 2005):
-on each event the follower extends the cost matrix by exactly one
-column instead of recomputing the whole table. Memory stays at
-``O(N)`` because only two columns (``prev_col``, ``curr_col``) are
-kept around.
-
-A ``RunCount`` heuristic (see ``max_run``) prevents the tracker from
-freezing on an octave-displaced pitch: if the same row keeps winning
-for too many steps we force a diagonal step forward. This is the
-classical fix from the OLTW literature, not a project invention.
 """
+on-line time warping трекер партитуры (dixon 2005)
+
+инкрементальный вариант dtw: на каждое событие достраиваем одну колонку
+матрицы стоимости, храним только prev_col и curr_col. память O(N),
+runtime O(N) на событие
+
+runcount fail-safe: если позиция не двигается k событий подряд,
+форсируем шаг вперёд - спасает от октавно-смещённых нот, на которых
+обычное dtw зависает
+"""
+
+# используется в:
+#   - oltw_follower
 
 from __future__ import annotations
 

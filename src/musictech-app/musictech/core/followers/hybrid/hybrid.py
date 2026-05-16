@@ -1,24 +1,15 @@
-"""HSMM + OLTW score follower with anchor-window recovery.
+"""
+гибридный score-follower: hsmm + oltw + якорный resync
 
-The class composes the two base followers (``ScoreFollowerHSMM`` and
-``ScoreFollowerOLTW``) and adds three mechanisms on top:
+логика:
+1. оба трекера получают каждое midi-событие
+2. selector выбирает: confidence > порога - берём hsmm, иначе oltw
+3. anchor search ищет последние k событий как окно в партитуре через
+   template-matching по pitch + temp-fitting; если найден сильный
+   матч далеко от текущей позиции - форсируем resync обоих трекеров
 
-1. Confidence-based fusion. The HSMM is the primary tracker; the OLTW
-   is queried only when HSMM confidence drops below
-   ``confidence_threshold`` or when the two trackers disagree.
-2. Anchor-window recovery. A rolling window of the most recent
-   observed pitches is matched against every position in the score
-   to detect gross desynchronizations (skips, repeats, missed entries).
-   When the anchor search converges, both trackers are seeked to the
-   detected position.
-3. Output debouncer. Single-event flickers in the selected index are
-   suppressed so the orchestral renderer never plays the wrong chord
-   because of a one-frame glitch in the underlying followers.
-
-The class is large because all three mechanisms share state (current
-position, observation buffer, tempo-scale estimates). Splitting them
-into mixins would not reduce overall complexity; this is the official
-"big legacy class" we live with.
+это "классический трекер" в смысле тезисов. поверх него планируется
+RL-агент опережающего темпа
 """
 
 from __future__ import annotations

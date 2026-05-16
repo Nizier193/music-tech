@@ -7,6 +7,9 @@ The module also re-exports the ``mido`` handle that ``main.py``
 imports as ``from live_midi_receiver import ..., mido as live_mido``.
 """
 
+# используется в:
+#   - legacy_cli.test_input_module
+
 from musictech.io.midi._helpers import (
     MidiEvent,
     MidiEventQueue,

@@ -1,23 +1,25 @@
-"""Typed data transfer objects (DTOs) shared between layers.
-
-The existing codebase passes data as ``dict[str, Any]`` and positional
-tuples, which makes the architecture hard to follow. This module gives
-new code explicit types for the three main object families:
-
-1. Static score data (``ScoreNote``, ``TempoMarker``, ``ScoreDocument``).
-2. Realtime performer events (``PerformanceEvent``).
-3. Follower outputs and tempo state (``AlphaSummary``, ``FollowerOutput``,
-   ``TempoEstimate``).
-4. RL interface (``RLObservation``, ``RLAction``, ``RLReward``).
-
-All DTOs are deliberately minimal: pure-Python dataclasses / TypedDicts,
-no third-party dependencies. They are *contracts*, not behavior — methods
-should live in the modules that consume them.
-
-Compatibility helpers (``to_performance_event``, ``from_score_note_dict``)
-let new code interoperate with legacy ``dict`` payloads without rewriting
-``hybrid_fusion`` / ``output_dispatcher``.
 """
+типизированные dto, которые передаются между слоями musictech
+
+legacy-код раньше пихал данные как dict[str, any] и кортежи - читать
+такой код тяжело. этот модуль вводит явные типы для четырёх семейств:
+
+1. статика партитуры (ScoreNote, TempoMarker, ScoreDocument)
+2. live-события исполнителя (PerformanceEvent)
+3. выход трекера (AlphaSummary, FollowerOutput, TempoEstimate)
+4. интерфейс rl-агента (RLObservation, RLAction, RLReward)
+
+все dto специально тонкие - это контракты, не поведение. логика
+живёт в модулях которые их потребляют. для совместимости со старым
+кодом есть переходники to_performance_event и from_score_note_dict
+- они принимают legacy-dict и возвращают типизированный объект
+"""
+
+# используется в:
+#   - musictech.rl.env
+#   - musictech.rl.policy
+#   - musictech.rl.reward
+#   - musictech.rl.state
 
 from __future__ import annotations
 

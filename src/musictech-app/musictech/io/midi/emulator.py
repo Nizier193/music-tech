@@ -1,4 +1,10 @@
-"""File-based MIDI source that replays a ``.mid`` file in realtime."""
+"""
+file-source midi: проигрывает .mid в реальном времени
+
+MidiEmulator имеет тот же API что и LiveMidiReceiver - один Queue,
+одинаковый get_events(). это даёт возможность гонять весь стек на
+записи без midi-устройства
+"""
 
 from __future__ import annotations
 

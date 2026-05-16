@@ -1,15 +1,17 @@
-"""Realtime score-following with duration-dependent transitions.
-
-A "pseudo-HSMM" tracker: one hidden state per score note, scaled
-Forward update, but the four transitions (stay / advance / skip /
-leap) are dynamically reweighted at every event from the elapsed
-time spent in the current state. This is the baseline tracker used
-inside :class:`HybridScoreFollower` (see :mod:`.hybrid`).
-
-The follower stays pure-numpy and never touches MIDI / pygame: the
-contract is ``process_event(pitch, timestamp) -> score_index``, where
-``pitch`` may be a scalar or a chord (``list[int]`` / ``np.ndarray``).
 """
+псевдо-hsmm трекер партитуры с длительностно-зависимыми переходами
+
+одно скрытое состояние на ноту, scaled forward update, но четыре
+перехода (stay / advance / skip / leap) пересчитываются на каждом
+событии от ratio = elapsed / nominal_duration. это эвристика,
+не канонический cont 2010 - канон в плане до защиты
+
+базовый трекер боевого стека: вызывается из musictech.core.followers
+.hybrid.hybrid вместе с oltw
+"""
+
+# используется в:
+#   - hsmm_follower
 
 from __future__ import annotations
 

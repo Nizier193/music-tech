@@ -1,15 +1,16 @@
-"""Reward function for the tempo prediction RL agent.
-
-Implements equation (1) from ``papers/тезисы.pdf``::
-
-    r_t = -|t_render_t - t_perf_t|   ← sync error
-          - λ · L_align(t)            ← tracker alignment loss
-          - μ · (a_t - a_{t-1})²      ← tempo jerk
-
-All three terms are kept separately in the returned :class:`RLReward`
-dataclass so the agent's diagnostics (and PPO advantage debugging) can
-plot them independently. The sign convention is: more negative = worse.
 """
+функция награды r_t для агента темпа (формула 1 тезисов)
+
+r_t = -|t_render - t_perf| - λ * L_align(t) - μ * (a_t - a_{t-1})²
+
+три члена живут в RLReward.sync_error, RLReward.alignment_error,
+RLReward.tempo_jerk - отдельно, чтобы можно было дебажить advantage
+estimation в PPO
+"""
+
+# используется в:
+#   - musictech.rl
+#   - musictech.rl.env
 
 from __future__ import annotations
 

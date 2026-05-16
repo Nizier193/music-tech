@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+# используется в:
+#   - midi_workspace
+
 import argparse
 import math
 import sys

@@ -1,4 +1,13 @@
-"""Hardware MIDI input receiver running on a background thread."""
+"""
+realtime midi-вход с hardware-порта
+
+LiveMidiReceiver слушает выбранный порт в фоновом потоке, складывает
+note_on в Queue. потребитель (трекер) забирает события через
+get_events() - не блокируется
+
+открытие/закрытие порта через context-manager (__enter__/__exit__)
+- единственное место в realtime-слое где разрешены магические методы
+"""
 
 from __future__ import annotations
 

@@ -8,6 +8,12 @@ The hybrid follower is now split into:
   profile)
 """
 
+# используется в:
+#   - interactive_tester
+#   - legacy_cli.autoplay_offset_benchmark
+#   - legacy_cli.calibrate_hybrid_profile
+#   - legacy_cli.stress_test_hybrid
+
 from musictech.core.followers.hybrid import (
     HYBRID_PROFILE_FORMAT_VERSION,
     HYBRID_PROFILE_TUNING_KEYS,

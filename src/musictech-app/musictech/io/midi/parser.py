@@ -1,7 +1,9 @@
-"""Offline MIDI parser: list every ``note_on`` with its absolute timestamp.
+"""
+оффлайн-парсер midi: возвращает список всех note_on с timestamp-ами
 
-Used by the dispatcher smoke test and the calibration benchmarks. For
-realtime replay see :class:`MidiEmulator`.
+используется в калибраторах (autoplay_offset_benchmark, stress_test)
+и в ноутбуках. для realtime-плеера есть MidiEmulator, а это - просто
+читалка
 """
 
 from __future__ import annotations

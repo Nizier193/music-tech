@@ -1,10 +1,13 @@
-"""Print paired score / performance data side-by-side for inspection.
-
-Used during dataset bring-up: given a directory of ``.json``/``.mid``
-pairs (typically the synthetic dataset), it walks them and prints the
-two streams next to each other so misalignments are obvious to a
-human reader.
 """
+cli-просмотрщик пар score.json / performance.mid
+
+печатает их рядом - полезно глазами проверить что midi импортирован
+корректно (timestamp-ы соответствуют nominal_onset, нет лишних нот итп)
+"""
+
+# используется в:
+#   - dataset_viewer
+#   - hmm_follower
 
 from __future__ import annotations
 

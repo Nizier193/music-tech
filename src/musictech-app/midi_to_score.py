@@ -1,5 +1,9 @@
 """Compatibility shim — see :mod:`musictech.preprocessing.midi_to_score`."""
 
+# используется в:
+#   - midi_workspace
+#   - prepare_study_mode_batch
+
 from musictech.preprocessing.midi_to_score import (
     NoteEvent,
     build_parser,

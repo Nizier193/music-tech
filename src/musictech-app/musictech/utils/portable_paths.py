@@ -1,15 +1,13 @@
-"""Project-path normalization for manifests and subprocess commands.
-
-Library MIDI manifests embed launch commands like
-``["python3", "midi_workspace.py", "--piece", ...]``. When the repo
-is moved or re-cloned, absolute paths inside these commands break.
-The helpers here rewrite absolute paths back to project-relative form
-so manifests remain portable.
-
-``PROJECT_ROOT`` is computed as ``<this file>/../../..`` so the
-constant keeps pointing at the *project* root even after the module
-moved into :mod:`musictech.utils`.
 """
+нормализация путей в манифестах библиотеки
+
+midi-манифесты содержат subprocess-команды с абсолютными путями.
+при переносе репо такие пути ломаются - portable_command переписывает
+их в проектно-относительные через PROJECT_ROOT
+"""
+
+# используется в:
+#   - portable_paths
 
 from __future__ import annotations
 

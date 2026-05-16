@@ -1,10 +1,12 @@
-"""Console-only playback stub for dispatcher integration tests.
-
-Subscribes to a :class:`ScoreEventDispatcher` and logs every index
-change and tempo step. Used by ``playback_validator.py`` and unit
-tests to verify the dispatcher fan-out without depending on
-``pygame.midi`` or audio hardware.
 """
+заглушка оркестра для smoke-тестов dispatcher fan-out
+
+подписывается на ScoreEventDispatcher и просто логирует index/tempo.
+никаких midi/audio - можно гонять в CI без устройств
+"""
+
+# используется в:
+#   - output_dispatcher
 
 from __future__ import annotations
 

@@ -1,21 +1,16 @@
-"""Tempo-prediction policy: a tiny MLP, pure numpy.
-
-The thesis specifies a 2-layer MLP with 64 hidden units and a scalar
-output bounded to ``[a_min, a_max]``. At inference time the model needs
-sub-millisecond latency on CPU, so we implement it in plain numpy. No
-PyTorch dependency in the realtime path.
-
-This module deliberately does *not* implement training. The plan is to
-populate the weights either:
-
-1. From a behavior-cloning run done in a Jupyter notebook (PyTorch /
-   scikit-learn there is fine — the realtime path will load only the
-   final numpy arrays via :meth:`MLPPolicy.load_weights`).
-2. From a Stable-Baselines3 PPO checkpoint via a one-time conversion
-   script.
-
-Both routes feed the same ``.npz`` artifact, defined in :meth:`save_weights`.
 """
+MLP-политика темпа, pure numpy
+
+архитектура: 2 hidden layer × 64 unit, tanh, выходной сигмоид +
+rescale в [action_low, action_high]. в realtime нужен sub-millisecond
+inference - поэтому numpy, не torch
+
+вес обучается отдельно (через behavior cloning или PPO), потом
+сохраняется в .npz и подгружается через load_weights
+"""
+
+# используется в:
+#   - musictech.rl
 
 from __future__ import annotations
 

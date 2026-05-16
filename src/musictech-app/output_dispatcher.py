@@ -14,6 +14,11 @@ Legacy callers still use module-private symbols (``_load_score``,
 without an underscore-stripped public name.
 """
 
+# используется в:
+#   - interactive_tester
+#   - legacy_cli.autoplay_offset_benchmark
+#   - legacy_cli.playback_validator
+
 from musictech.io.midi._helpers import _require_mido
 from musictech.io.midi.parser import iter_midi_note_events
 from musictech.playback.event_dispatcher import ScoreEventDispatcher

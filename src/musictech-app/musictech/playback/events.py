@@ -1,10 +1,13 @@
-"""Plain-dataclass DTOs passed inside the playback layer.
-
-These are intentionally separate from :mod:`musictech.core.dto`: that
-module describes contracts between *layers* (follower → RL agent →
-evaluation), whereas these classes are internal to playback (tempo
-tracker → event dispatcher → orchestra player).
 """
+plain-dataclass dto для слоя playback
+
+отделены от musictech.core.dto: тот описывает контракт между слоями
+(follower -> rl-агент -> evaluation), а здесь dto живут внутри одного
+слоя (tempo tracker -> dispatcher -> orchestra player)
+"""
+
+# используется в:
+#   - output_dispatcher
 
 from __future__ import annotations
 

@@ -1,16 +1,13 @@
-"""Generate the 4-piece synthetic dataset used by unit tests.
-
-Produces four (score JSON + performance MIDI) pairs that cover the
-main rough categories the follower must handle:
-
-- ``ideal`` — performance matches the score note-for-note;
-- ``rubato`` — same notes but expressive tempo variations;
-- ``noisy`` — wrong pitches, dropouts, and random fillers;
-- ``polyphonic`` — chords instead of single notes.
-
-Used by ``hmm_follower.py``'s demo block, dispatcher integration
-tests, and the legacy ``main.py`` CLI smoke checks.
 """
+синтетический датасет из 4 сценариев для smoke-тестов
+
+ideal - гамма ровно по нотам, rubato - тот же pitch с expressive
+timing, noisy - лишние ноты + опечатки на полутон, polyphonic - аккорды.
+пары (score.json, performance.mid) пишутся в generated_dataset/
+"""
+
+# используется в:
+#   - midi_generator
 
 from __future__ import annotations
 
