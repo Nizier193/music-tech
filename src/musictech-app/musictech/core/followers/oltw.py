@@ -25,7 +25,7 @@ __all__ = ["ScoreFollowerOLTW"]
 
 
 class ScoreFollowerOLTW:
-    """Incremental DTW score follower with a RunCount fail-safe."""
+    """инкрементальный dtw-трекер партитуры с runcount fail-safe"""
 
     _HORIZONTAL = "horizontal"
     _DIAGONAL = "diagonal"
@@ -38,9 +38,9 @@ class ScoreFollowerOLTW:
     ) -> None:
         notes = self._load_notes(score_json)
         if not notes:
-            raise ValueError("score_json must contain at least one note state")
+            raise ValueError("score_json должен содержать хотя бы одно состояние")
         if max_local_cost <= 0.0:
-            raise ValueError("max_local_cost must be positive")
+            raise ValueError("max_local_cost должен быть положительным")
 
         self.num_states = len(notes)
         self.N = self.num_states
@@ -78,7 +78,7 @@ class ScoreFollowerOLTW:
         self._has_seen_event = False
 
     def process_event(self, pitch: Any, timestamp: float) -> int:
-        """Consume one MIDI note event and return the predicted score index."""
+        """обрабатывает одно midi-событие и возвращает индекс state партитуры"""
         observed_pitches = self._coerce_observed_pitches(pitch)
         event_time = float(timestamp)
 
@@ -146,7 +146,7 @@ class ScoreFollowerOLTW:
         return self.current_state_index
 
     def seek(self, position: int, timestamp: float | None = None) -> int:
-        """Force the DTW tracker to resume from a specific score position."""
+        """форсирует продолжение dtw с заданной позиции"""
         target_position = int(np.clip(position, 0, self.N - 1))
         event_time = float(self.last_timestamp if timestamp is None else timestamp)
 
@@ -165,7 +165,7 @@ class ScoreFollowerOLTW:
         return self.current_state_index
 
     def reset_to_start(self) -> int:
-        """Reset the OLTW tracker back to the beginning of the score."""
+        """сбрасывает oltw в начало партитуры"""
         self.prev_col.fill(np.inf)
         self.curr_col.fill(np.inf)
         self.prev_col[0] = 0.0
@@ -189,15 +189,15 @@ class ScoreFollowerOLTW:
             score_path = Path(score_json)
             if score_path.suffix.lower() in {".mid", ".midi"}:
                 raise ValueError(
-                    "ScoreFollowerOLTW expects a score JSON file, not a MIDI file."
+                    "ScoreFollowerOLTW ожидает score.json, а не midi-файл"
                 )
 
             try:
                 payload = json.loads(score_path.read_text(encoding="utf-8"))
             except UnicodeDecodeError as exc:
-                raise ValueError(f"Could not decode score JSON: {score_path}") from exc
+                raise ValueError(f"не удалось распарсить score.json: {score_path}") from exc
             except json.JSONDecodeError as exc:
-                raise ValueError(f"Invalid score JSON: {score_path}") from exc
+                raise ValueError(f"невалидный score.json: {score_path}") from exc
         else:
             payload = score_json
 
@@ -206,16 +206,16 @@ class ScoreFollowerOLTW:
         elif isinstance(payload, dict):
             notes = payload.get("notes")
         else:
-            raise TypeError("score_json must be a path, a score dict, or a list of notes")
+            raise TypeError("score_json должен быть путём, объектом score или списком нот")
 
         if not isinstance(notes, list):
-            raise ValueError("score_json must contain a top-level list of notes")
+            raise ValueError("score_json должен содержать список нот верхнего уровня")
 
         for position, note in enumerate(notes):
             if not isinstance(note, dict):
-                raise ValueError(f"score note #{position} must be a JSON object")
+                raise ValueError(f"score note #{position} должна быть json-объектом")
             if "pitch" not in note and "pitches" not in note:
-                raise ValueError(f"score note #{position} is missing 'pitch'/'pitches'")
+                raise ValueError(f"score note #{position} не имеет поля `pitch`/`pitches`")
 
         return notes
 
@@ -225,11 +225,11 @@ class ScoreFollowerOLTW:
         if raw_pitches is None:
             raw_pitch = note.get("pitch")
             if raw_pitch is None:
-                raise ValueError("score note is missing 'pitch'/'pitches'")
+                raise ValueError("у ноты партитуры отсутствует поле `pitch` или `pitches`")
             return [float(raw_pitch)]
 
         if not isinstance(raw_pitches, list) or not raw_pitches:
-            raise ValueError("score note 'pitches' must be a non-empty list")
+            raise ValueError("поле `pitches` ноты должно быть непустым списком")
         return [float(pitch) for pitch in raw_pitches]
 
     @staticmethod
@@ -242,6 +242,6 @@ class ScoreFollowerOLTW:
             observed_pitches = np.asarray([float(pitch)], dtype=np.float64)
 
         if observed_pitches.size == 0:
-            raise ValueError("observed pitch collection must not be empty")
+            raise ValueError("коллекция наблюдаемых pitch не должна быть пустой")
 
         return observed_pitches

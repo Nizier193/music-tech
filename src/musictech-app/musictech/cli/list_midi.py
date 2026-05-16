@@ -26,7 +26,7 @@ def main() -> int:
                 "or fall back to MidiEmulator-only mode."
             )
         else:
-            print(f"pygame.midi is unavailable in this build (missing module: {exc.name}).")
+            print(f"pygame.midi недоступен в этой сборке (отсутствует модуль: {exc.name}).")
         return 1
 
     pygame.midi.init()
@@ -34,7 +34,7 @@ def main() -> int:
         found = False
         count = pygame.midi.get_count()
 
-        print("Available MIDI output devices:")
+        print("доступные midi-устройства вывода:")
         for device_id in range(count):
             interface, name, _is_input, is_output, _opened = pygame.midi.get_device_info(
                 device_id
@@ -48,7 +48,7 @@ def main() -> int:
             print(f"ID {device_id}: {device_name} ({interface_name})")
 
         if not found:
-            print("No MIDI output devices found.")
+            print("midi-устройства вывода не найдены")
     finally:
         pygame.midi.quit()
 

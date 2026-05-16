@@ -28,7 +28,7 @@ __all__ = ["HybridScoreFollower"]
 
 
 class HybridScoreFollower:
-    """Fuse HSMM confidence with OLTW recovery behavior."""
+    """гибрид: hsmm-вероятности + oltw-recovery поведение"""
 
     _ANCHOR_INTRA_CHORD_GAP = 0.012
 
@@ -168,53 +168,53 @@ class HybridScoreFollower:
             )
 
         if not 0.0 < confidence_threshold <= 1.0:
-            raise ValueError("confidence_threshold must be in the interval (0, 1]")
+            raise ValueError("confidence_threshold должен быть в интервале (0, 1]")
         if resync_gap < 1:
-            raise ValueError("resync_gap must be at least 1")
+            raise ValueError("resync_gap должен быть не меньше 1")
         if not 0.5 < nudge_target_mass <= 1.0:
-            raise ValueError("nudge_target_mass must be in the interval (0.5, 1]")
+            raise ValueError("nudge_target_mass должен быть в интервале (0.5, 1]")
         if max_forward_match_gap < 1:
-            raise ValueError("max_forward_match_gap must be at least 1")
+            raise ValueError("max_forward_match_gap должен быть не меньше 1")
         if max_forward_match_lead_over_oltw < 0:
-            raise ValueError("max_forward_match_lead_over_oltw must be non-negative")
+            raise ValueError("max_forward_match_lead_over_oltw должен быть неотрицательным")
         if max_forward_step < 1:
-            raise ValueError("max_forward_step must be at least 1")
+            raise ValueError("max_forward_step должен быть не меньше 1")
         if recovery_confirmation_events < 1:
-            raise ValueError("recovery_confirmation_events must be at least 1")
+            raise ValueError("recovery_confirmation_events должен быть не меньше 1")
         if not anchor_window_lengths:
-            raise ValueError("anchor_window_lengths must not be empty")
+            raise ValueError("anchor_window_lengths не должен быть пустым")
         if any(length < 2 for length in anchor_window_lengths):
-            raise ValueError("anchor_window_lengths must contain values >= 2")
+            raise ValueError("значения anchor_window_lengths должны быть не меньше 2")
         if anchor_pitch_clip <= 0.0:
-            raise ValueError("anchor_pitch_clip must be positive")
+            raise ValueError("anchor_pitch_clip должен быть положительным")
         if anchor_total_cost_threshold <= 0.0:
-            raise ValueError("anchor_total_cost_threshold must be positive")
+            raise ValueError("anchor_total_cost_threshold должен быть положительным")
         if anchor_margin_threshold < 0.0:
-            raise ValueError("anchor_margin_threshold must be non-negative")
+            raise ValueError("anchor_margin_threshold должен быть неотрицательным")
         if anchor_time_weight < 0.0:
-            raise ValueError("anchor_time_weight must be non-negative")
+            raise ValueError("anchor_time_weight должен быть неотрицательным")
         if anchor_min_tempo_scale <= 0.0 or anchor_max_tempo_scale <= 0.0:
-            raise ValueError("anchor tempo scale bounds must be positive")
+            raise ValueError("границы anchor tempo scale должны быть положительными")
         if anchor_min_tempo_scale > anchor_max_tempo_scale:
-            raise ValueError("anchor_min_tempo_scale must be <= anchor_max_tempo_scale")
+            raise ValueError("anchor_min_tempo_scale должен быть <= anchor_max_tempo_scale")
         if anchor_local_improvement_threshold < 0.0:
-            raise ValueError("anchor_local_improvement_threshold must be non-negative")
+            raise ValueError("anchor_local_improvement_threshold должен быть неотрицательным")
         if anchor_search_max_events < max(anchor_window_lengths):
-            raise ValueError("anchor_search_max_events must cover the largest anchor window")
+            raise ValueError("anchor_search_max_events должен покрывать самое большое anchor-окно")
         if anchor_confirmation_events < 1:
-            raise ValueError("anchor_confirmation_events must be at least 1")
+            raise ValueError("anchor_confirmation_events должен быть не меньше 1")
         if anchor_stability_tolerance < 0:
-            raise ValueError("anchor_stability_tolerance must be non-negative")
+            raise ValueError("anchor_stability_tolerance должен быть неотрицательным")
         if anchor_min_jump < 1:
-            raise ValueError("anchor_min_jump must be at least 1")
+            raise ValueError("anchor_min_jump должен быть не меньше 1")
         if anchor_min_supporting_windows < 1:
-            raise ValueError("anchor_min_supporting_windows must be at least 1")
+            raise ValueError("anchor_min_supporting_windows должен быть не меньше 1")
         if anchor_local_preference_margin < 0.0:
-            raise ValueError("anchor_local_preference_margin must be non-negative")
+            raise ValueError("anchor_local_preference_margin должен быть неотрицательным")
         if output_confirmation_events < 1:
-            raise ValueError("output_confirmation_events must be at least 1")
+            raise ValueError("output_confirmation_events должен быть не меньше 1")
         if not 0.0 < output_high_confidence <= 1.0:
-            raise ValueError("output_high_confidence must be in the interval (0, 1]")
+            raise ValueError("output_high_confidence должен быть в интервале (0, 1]")
 
         self.hsmm = ScoreFollowerHSMM(
             score_json,
@@ -224,7 +224,7 @@ class HybridScoreFollower:
         self.oltw = ScoreFollowerOLTW(score_json, max_local_cost=max_local_cost)
 
         if self.hsmm.N != self.oltw.N:
-            raise ValueError("HSMM and OLTW must be initialized with the same score length")
+            raise ValueError("HSMM и OLTW должны инициализироваться одинаковой партитурой")
 
         self.confidence_threshold = float(confidence_threshold)
         self.resync_gap = int(resync_gap)
@@ -302,7 +302,7 @@ class HybridScoreFollower:
         return "OLTW (Recovery)"
 
     def process_event(self, pitch: Any, timestamp: float) -> int:
-        """Process one observation and return the fused score index."""
+        """обрабатывает одно событие и возвращает fused-индекс state"""
         observed_pitches = self._coerce_observed_pitches(pitch)
         event_time = float(timestamp)
         if self._last_input_timestamp is not None and event_time < self._last_input_timestamp:
@@ -363,7 +363,7 @@ class HybridScoreFollower:
         return self._current_index
 
     def seek(self, position: int, timestamp: float | None = None) -> int:
-        """Explicitly move the hybrid follower to a chosen score position."""
+        """явно перемещает гибрид в указанную позицию state"""
         event_time = float(self._last_input_timestamp if timestamp is None else timestamp)
         target_position = int(np.clip(position, 0, self.N - 1))
 
@@ -402,12 +402,12 @@ class HybridScoreFollower:
             observed_pitches = np.asarray([float(pitch)], dtype=np.float64)
 
         if observed_pitches.size == 0:
-            raise ValueError("observed pitch collection must not be empty")
+            raise ValueError("коллекция наблюдаемых pitch не должна быть пустой")
 
         return observed_pitches
 
     def reset_to_start(self) -> int:
-        """Reset the fused tracker and all recovery/anchor state to score start."""
+        """сбрасывает гибрид и весь recovery/anchor-state в начало"""
         self.hsmm.reset_to_start()
         self.oltw.reset_to_start()
 

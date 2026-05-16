@@ -25,7 +25,7 @@ __all__ = ["ScoreFollowerHSMM"]
 
 
 class ScoreFollowerHSMM:
-    """Realtime score-following with duration-dependent transitions."""
+    """реалтайм-трекер партитуры с длительностно-зависимыми переходами (псевдо-hsmm)"""
 
     _MIN_DURATION = 1e-6
     _TINY = np.finfo(np.float64).tiny
@@ -37,13 +37,13 @@ class ScoreFollowerHSMM:
         outlier_pitch_clip: float = 6.0,
     ) -> None:
         if sigma <= 0.0:
-            raise ValueError("sigma must be positive")
+            raise ValueError("sigma должна быть положительной")
         if outlier_pitch_clip <= 0.0:
-            raise ValueError("outlier_pitch_clip must be positive")
+            raise ValueError("outlier_pitch_clip должен быть положительным")
 
         score_data, notes = self._load_score(score_json)
         if not notes:
-            raise ValueError("score_json must contain at least one note state")
+            raise ValueError("score_json должен содержать хотя бы одно состояние")
 
         self.score_data = score_data
         self.notes = notes
@@ -96,7 +96,7 @@ class ScoreFollowerHSMM:
         self._has_seen_event = False
 
     def process_event(self, pitch: Any, timestamp: float) -> int:
-        """Consume one MIDI note event and return the most likely score index."""
+        """обрабатывает одно midi-событие и возвращает наиболее вероятный индекс state"""
         observed_pitches = self._coerce_observed_pitches(pitch)
         event_time = float(timestamp)
 
@@ -162,7 +162,7 @@ class ScoreFollowerHSMM:
         return self.current_state_index
 
     def seek(self, position: int, timestamp: float | None = None) -> int:
-        """Force the follower to a specific score position."""
+        """форсирует трекер на заданную позицию state"""
         target_position = int(np.clip(position, 0, self.N - 1))
         event_time = float(self.last_timestamp if timestamp is None else timestamp)
 
@@ -186,7 +186,7 @@ class ScoreFollowerHSMM:
         return self.current_state_index
 
     def reset_to_start(self) -> int:
-        """Reset the HSMM back to its initial start-of-score state."""
+        """сбрасывает hsmm в начальное состояние"""
         self.alpha.fill(0.0)
         self.alpha[0] = 1.0
         self.current_state_position = 0
@@ -215,15 +215,15 @@ class ScoreFollowerHSMM:
             score_path = Path(score_json)
             if score_path.suffix.lower() in {".mid", ".midi"}:
                 raise ValueError(
-                    "ScoreFollowerHSMM expects a score JSON file, not a MIDI file."
+                    "ScoreFollowerHSMM ожидает score.json, а не midi-файл"
                 )
 
             try:
                 payload = json.loads(score_path.read_text(encoding="utf-8"))
             except UnicodeDecodeError as exc:
-                raise ValueError(f"Could not decode score JSON: {score_path}") from exc
+                raise ValueError(f"не удалось распарсить score.json: {score_path}") from exc
             except json.JSONDecodeError as exc:
-                raise ValueError(f"Invalid score JSON: {score_path}") from exc
+                raise ValueError(f"невалидный score.json: {score_path}") from exc
         else:
             payload = score_json
 
@@ -234,18 +234,18 @@ class ScoreFollowerHSMM:
             notes = payload.get("notes")
             score_data = payload
         else:
-            raise TypeError("score_json must be a path, a score dict, or a list of notes")
+            raise TypeError("score_json должен быть путём, объектом score или списком нот")
 
         if not isinstance(notes, list):
-            raise ValueError("score_json must contain a top-level list of notes")
+            raise ValueError("score_json должен содержать список нот верхнего уровня")
 
         for position, note in enumerate(notes):
             if not isinstance(note, dict):
-                raise ValueError(f"score note #{position} must be a JSON object")
+                raise ValueError(f"score note #{position} должна быть json-объектом")
             if "pitch" not in note and "pitches" not in note:
-                raise ValueError(f"score note #{position} is missing 'pitch'/'pitches'")
+                raise ValueError(f"score note #{position} не имеет поля `pitch`/`pitches`")
             if "nominal_duration" not in note:
-                raise ValueError(f"score note #{position} is missing 'nominal_duration'")
+                raise ValueError(f"score note #{position} не имеет поля `nominal_duration`")
 
         return score_data, notes
 
@@ -255,11 +255,11 @@ class ScoreFollowerHSMM:
         if raw_pitches is None:
             raw_pitch = note.get("pitch")
             if raw_pitch is None:
-                raise ValueError("score note is missing 'pitch'/'pitches'")
+                raise ValueError("у ноты партитуры отсутствует поле `pitch` или `pitches`")
             return [float(raw_pitch)]
 
         if not isinstance(raw_pitches, list) or not raw_pitches:
-            raise ValueError("score note 'pitches' must be a non-empty list")
+            raise ValueError("поле `pitches` ноты должно быть непустым списком")
         return [float(pitch) for pitch in raw_pitches]
 
     @staticmethod
@@ -272,7 +272,7 @@ class ScoreFollowerHSMM:
             observed_pitches = np.asarray([float(pitch)], dtype=np.float64)
 
         if observed_pitches.size == 0:
-            raise ValueError("observed pitch collection must not be empty")
+            raise ValueError("коллекция наблюдаемых pitch не должна быть пустой")
 
         return observed_pitches
 

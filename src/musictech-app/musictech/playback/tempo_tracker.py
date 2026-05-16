@@ -29,7 +29,7 @@ __all__ = ["TempoTracker"]
 
 
 class TempoTracker:
-    """Estimate performance tempo from score progress and event timestamps."""
+    """оценивает темп исполнения по прогрессу через состояния и timestamp-ам"""
 
     _MIN_ELAPSED = 1e-6
 
@@ -49,17 +49,17 @@ class TempoTracker:
         idle_reset_seconds: float = 1.5,
     ) -> None:
         if history_size < 1:
-            raise ValueError("history_size must be at least 1")
+            raise ValueError("history_size должен быть не меньше 1")
         if initial_tempo_ratio <= 0.0:
-            raise ValueError("initial_tempo_ratio must be positive")
+            raise ValueError("initial_tempo_ratio должен быть положительным")
         if min_tempo_ratio <= 0.0 or max_tempo_ratio <= 0.0:
-            raise ValueError("tempo ratio bounds must be positive")
+            raise ValueError("границы tempo_ratio должны быть положительными")
         if min_tempo_ratio > max_tempo_ratio:
-            raise ValueError("min_tempo_ratio must be <= max_tempo_ratio")
+            raise ValueError("min_tempo_ratio должен быть <= max_tempo_ratio")
         if min_nominal_window <= 0.0:
-            raise ValueError("min_nominal_window must be positive")
+            raise ValueError("min_nominal_window должен быть положительным")
         if idle_reset_seconds <= 0.0:
-            raise ValueError("idle_reset_seconds must be positive")
+            raise ValueError("idle_reset_seconds должен быть положительным")
 
         _, notes = load_score(score_json)
         self.state_indices = np.asarray(
@@ -115,7 +115,7 @@ class TempoTracker:
         self.last_change_timestamp: float | None = None
 
     def update(self, score_index: int, timestamp: float) -> float:
-        """Update the tempo ratio from one new ``(score_index, timestamp)`` pair."""
+        """обновляет tempo_ratio из новой пары (score_index, timestamp)"""
         position = self._position_for_index(score_index)
         event_time = float(timestamp)
 
@@ -218,7 +218,7 @@ class TempoTracker:
         return self.tempo_ratio
 
     def reset(self) -> None:
-        """Reset the tempo ratio and clear all history."""
+        """сбрасывает tempo_ratio и очищает историю"""
         self.tempo_ratio = self._initial_tempo_ratio
         self.recent_observations.clear()
         self.recent_tempo_ratios.clear()
@@ -231,7 +231,7 @@ class TempoTracker:
         self._update_count = 0
 
     def maybe_reset_idle(self, current_time: float) -> bool:
-        """Reset state if no new event arrived within ``idle_reset_seconds``."""
+        """сбрасывает state если за idle_reset_seconds не пришло ни одного события"""
         if self.last_change_timestamp is None:
             return False
         if (float(current_time) - self.last_change_timestamp) <= self.idle_reset_seconds:
@@ -245,7 +245,7 @@ class TempoTracker:
         try:
             return int(self.index_to_position[int(score_index)])
         except KeyError as exc:
-            raise ValueError(f"Unknown score index: {score_index}") from exc
+            raise ValueError(f"неизвестный индекс state партитуры: {score_index}") from exc
 
     def _log_variance_if_needed(self, raw_std: float, effective_smoothing: float) -> None:
         del raw_std, effective_smoothing

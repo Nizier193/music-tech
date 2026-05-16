@@ -14,10 +14,9 @@ _ZIP_SENTINEL = object()
 
 
 def compat_zip(*iterables, strict: bool = False):
-    """Drop-in replacement for ``zip`` with optional ``strict=`` (PEP 618).
+    """замена для zip с опциональным strict (PEP 618).
 
-    The strict variant raises ``ValueError`` if the iterables have
-    different lengths, matching Python 3.10+ semantics.
+    strict-вариант кидает ValueError если длины разные, как в python 3.10+
     """
     if not strict:
         return zip(*iterables)

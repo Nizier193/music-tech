@@ -34,7 +34,7 @@ def _require_mido() -> Any:
     """Return the imported ``mido`` module or raise a helpful error."""
     if mido is None:
         raise RuntimeError(
-            "mido is not installed. Install it or place it in the local .vendor directory."
+            "mido не установлен. установи или положи в локальную .vendor"
         )
     return mido
 

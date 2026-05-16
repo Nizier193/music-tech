@@ -33,7 +33,7 @@ __all__ = ["PygameMidiOrchestra"]
 
 
 class PygameMidiOrchestra:
-    """Play short MIDI piano accompaniment chords from dispatcher updates."""
+    """играет короткие midi-аккорды piano-аккомпанемента по событиям dispatcher"""
 
     def __init__(
         self,
@@ -47,13 +47,13 @@ class PygameMidiOrchestra:
         logger: logging.Logger | None = None,
     ) -> None:
         if not 0 <= instrument_program <= 127:
-            raise ValueError("instrument_program must be in the range [0, 127]")
+            raise ValueError("instrument_program должен быть в диапазоне [0, 127]")
         if not 0 <= midi_channel <= 15:
-            raise ValueError("midi_channel must be in the range [0, 15]")
+            raise ValueError("midi_channel должен быть в диапазоне [0, 15]")
         if not 0 <= velocity <= 127:
-            raise ValueError("velocity must be in the range [0, 127]")
+            raise ValueError("velocity должен быть в диапазоне [0, 127]")
         if base_chord_duration <= 0.0:
-            raise ValueError("base_chord_duration must be positive")
+            raise ValueError("base_chord_duration должен быть положительным")
 
         _, notes = load_score(score_json)
         self.state_indices = np.asarray(
@@ -106,18 +106,18 @@ class PygameMidiOrchestra:
             try:
                 output.close()
             except Exception:
-                self.logger.exception("Failed to close MIDI output cleanly")
+                self.logger.exception("не удалось корректно закрыть midi-вывод")
 
         if initialized_midi and pygame is not None and pygame.midi.get_init():
             try:
                 pygame.midi.quit()
             except Exception:
-                self.logger.exception("Failed to quit pygame.midi cleanly")
+                self.logger.exception("не удалось корректно завершить pygame.midi")
 
         self.is_available = False
 
     def panic(self) -> None:
-        """Force-release every active MIDI note (for stop / pause)."""
+        """принудительно отпускает все активные midi-ноты (для stop / pause)"""
         with self._lock:
             self._cancel_release_timer_locked()
             self._stop_active_notes_locked()
@@ -156,7 +156,7 @@ class PygameMidiOrchestra:
 
     def _open_output(self) -> None:
         if pygame is None:
-            self.logger.warning("pygame.midi is not installed; disabling MIDI orchestra")
+            self.logger.warning("pygame.midi не установлен, отключаем midi-оркестр")
             self.status_label = "MIDI orchestra unavailable"
             return
 
@@ -169,7 +169,7 @@ class PygameMidiOrchestra:
             if output_id < 0:
                 output_id = self._first_output_device_id()
             if output_id < 0:
-                self.logger.warning("No MIDI output device found; disabling MIDI orchestra")
+                self.logger.warning("midi-устройство вывода не найдено, отключаем midi-оркестр")
                 self.status_label = "MIDI orchestra unavailable"
                 return
 
@@ -178,7 +178,7 @@ class PygameMidiOrchestra:
             self.is_available = True
             self.status_label = f"Piano via MIDI (Program {self.instrument_program})"
         except Exception:
-            self.logger.exception("Failed to initialize MIDI orchestra")
+            self.logger.exception("не удалось инициализировать midi-оркестр")
             self.status_label = "MIDI orchestra unavailable"
             self.is_available = False
             if self._output is not None:
@@ -231,5 +231,5 @@ class PygameMidiOrchestra:
             try:
                 self._output.note_off(int(note), 0, self.midi_channel)
             except Exception:
-                self.logger.exception("Failed to stop MIDI note %s", note)
+                self.logger.exception("не удалось остановить midi-ноту %s", note)
         self._active_notes = []

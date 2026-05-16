@@ -21,7 +21,7 @@ __all__ = ["LiveMidiReceiver"]
 
 
 class LiveMidiReceiver:
-    """Receive live MIDI note events on a background thread."""
+    """принимает live midi-события note_on в фоновом потоке"""
 
     def __init__(
         self,
@@ -33,7 +33,7 @@ class LiveMidiReceiver:
         open_immediately: bool = True,
     ) -> None:
         if poll_interval <= 0:
-            raise ValueError("poll_interval must be positive")
+            raise ValueError("poll_interval должен быть положительным")
 
         self._port_name = port_name
         self._poll_interval = poll_interval
@@ -49,7 +49,7 @@ class LiveMidiReceiver:
             self.start()
 
     def start(self) -> None:
-        """Open the MIDI input port and start the listener thread."""
+        """открывает midi-порт и запускает listener в отдельном потоке"""
         midi_lib = _require_mido()
 
         with self._lock:
@@ -66,7 +66,7 @@ class LiveMidiReceiver:
             self._thread.start()
 
     def close(self, timeout: float = 1.0) -> None:
-        """Stop the listener and close the MIDI port."""
+        """останавливает listener и закрывает midi-порт"""
         thread: threading.Thread | None = None
         port: Any | None = None
 
@@ -91,7 +91,7 @@ class LiveMidiReceiver:
                 self._thread = None
 
     def get_events(self) -> list[MidiEvent]:
-        """Return all currently buffered events without blocking."""
+        """возвращает все буферизованные события без блокировки"""
         return _drain_queue(self._events)
 
     @property

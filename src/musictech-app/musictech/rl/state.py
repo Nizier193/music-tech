@@ -123,7 +123,7 @@ class HistoryBuffer:
 
     def __post_init__(self) -> None:
         if self.capacity <= 0:
-            raise ValueError("HistoryBuffer capacity must be positive")
+            raise ValueError("ёмкость HistoryBuffer должна быть положительной")
         self._data: np.ndarray = np.full(self.capacity, self.fill, dtype=np.float64)
 
     def push(self, value: float) -> None:
@@ -186,9 +186,9 @@ def encode_state(
         :meth:`RLObservation.as_vector` and fed to the policy network.
     """
     if score_length <= 0:
-        raise ValueError("score_length must be positive")
+        raise ValueError("score_length должен быть положительным")
     if tempo_history.ndim != 1 or emission_error_history.ndim != 1:
-        raise ValueError("history buffers must be 1-D arrays")
+        raise ValueError("буферы истории должны быть одномерными массивами")
     if tempo_history.size != emission_error_history.size:
         raise ValueError(
             f"history buffers must have equal length, got "

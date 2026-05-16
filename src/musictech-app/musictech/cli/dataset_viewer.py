@@ -73,7 +73,7 @@ def discover_pairs(paths: list[str]) -> list[tuple[Path, Path]]:
                 for json_path in candidate.glob("*.json")
                 if json_path.with_suffix(".mid").exists()
             )
-        raise SystemExit("Provide either a directory or both a score JSON path and a MIDI path.")
+        raise SystemExit("укажи либо директорию, либо score.json + midi")
 
     if len(paths) == 2:
         return [(Path(paths[0]), Path(paths[1]))]
@@ -118,12 +118,12 @@ def render_pair(score_path: Path, midi_path: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Print paired score/performance data side-by-side."
+        description="печатает пары score/performance бок-о-бок"
     )
     parser.add_argument(
         "paths",
         nargs="*",
-        help="Optional dataset directory or score/midi pair.",
+        help="опциональный путь до датасета или пара score/midi",
     )
     args = parser.parse_args()
 

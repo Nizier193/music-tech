@@ -34,48 +34,48 @@ __all__ = [
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Realtime score-following entry point for the HMM tracker.",
+        description="точка входа реалтайм-трекера на базе HMM",
     )
     parser.add_argument(
         "score_json",
         type=Path,
-        help="Path to the score JSON file.",
+        help="путь до score.json",
     )
     parser.add_argument(
         "--sigma",
         type=float,
         default=2.0,
-        help="Gaussian emission sigma in semitones (default: %(default)s).",
+        help="sigma гауссовой эмиссии в полутонах (по умолчанию: %(default)s)",
     )
     parser.add_argument(
         "--poll-interval",
         type=float,
         default=0.01,
-        help="Seconds between queue polls in live mode (default: %(default)s).",
+        help="секунды между polling-ами в live-режиме (по умолчанию: %(default)s)",
     )
 
     source_group = parser.add_mutually_exclusive_group(required=True)
     source_group.add_argument(
         "--midi-file",
         type=Path,
-        help="Replay a MIDI file in realtime via MidiEmulator.",
+        help="проиграть midi-файл в реальном времени через MidiEmulator",
     )
     source_group.add_argument(
         "--live",
         action="store_true",
-        help="Use LiveMidiReceiver to read note_on events from a MIDI input port.",
+        help="слушать midi-порт через LiveMidiReceiver",
     )
 
     parser.add_argument(
         "--port",
         type=str,
         default=None,
-        help="Specific MIDI input port name for --live mode.",
+        help="конкретный midi-порт для --live режима",
     )
     parser.add_argument(
         "--loop",
         action="store_true",
-        help="Loop the emulated MIDI file until interrupted.",
+        help="зациклить проигрывание midi до прерывания",
     )
     return parser
 
@@ -123,8 +123,8 @@ def resolve_score_path(path: Path) -> Path:
         )
 
     raise SystemExit(
-        f"Unsupported score input: {path}. "
-        "Pass a score `.json`, or a `.mid`/`.midi` that already has a sibling `.json`."
+        f"неподдерживаемый score-вход: {path}. "
+        "передай score.json или midi для которого уже создан рядом .json"
     )
 
 

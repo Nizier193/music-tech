@@ -28,7 +28,7 @@ __all__ = ["ScoreEventDispatcher"]
 
 
 class ScoreEventDispatcher:
-    """Fan out follower predictions to playback subscribers on a worker thread."""
+    """рассылает предсказания трекера подписчикам в фоновом потоке"""
 
     _SENTINEL = object()
 
@@ -57,7 +57,7 @@ class ScoreEventDispatcher:
             self.start()
 
     def start(self) -> None:
-        """Spin up the worker thread if it is not already running."""
+        """запускает рабочий поток если он ещё не работает"""
         with self._worker_lock:
             if self._worker is not None and self._worker.is_alive():
                 return
@@ -71,7 +71,7 @@ class ScoreEventDispatcher:
             self._worker.start()
 
     def subscribe(self, callback: DispatchCallback) -> None:
-        """Register ``callback(score_index, tempo_ratio)`` for every event."""
+        """подписывает callback(score_index, tempo_ratio) на все события"""
         with self._callbacks_lock:
             if callback not in self._callbacks:
                 self._callbacks.append(callback)
@@ -88,7 +88,7 @@ class ScoreEventDispatcher:
         *,
         tempo_update: bool = True,
     ) -> None:
-        """Enqueue one follower prediction for downstream delivery."""
+        """ставит одно предсказание трекера в очередь на доставку"""
         self.start()
         event = DispatchEvent(
             index=int(current_index),
@@ -107,14 +107,14 @@ class ScoreEventDispatcher:
             dropped = self._queue.get_nowait()
             self._queue.task_done()
             if dropped is not self._SENTINEL:
-                logging.warning("ScoreEventDispatcher queue overflow, dropping stale event")
+                logging.warning("очередь ScoreEventDispatcher переполнена, теряем устаревшее событие")
         except queue.Empty:
             pass
 
         self._queue.put_nowait(event)
 
     def flush(self, timeout: float = 2.0) -> bool:
-        """Block until all enqueued events are delivered or ``timeout`` elapses."""
+        """блокирует до доставки всех событий или таймаута"""
         deadline = time.monotonic() + max(0.0, timeout)
         while time.monotonic() < deadline:
             if self._queue.unfinished_tasks == 0:
@@ -123,7 +123,7 @@ class ScoreEventDispatcher:
         return self._queue.unfinished_tasks == 0
 
     def clear_pending(self) -> int:
-        """Discard everything still queued. Returns the number of dropped events."""
+        """очищает очередь и возвращает количество выкинутых событий"""
         cleared = 0
         while True:
             try:
@@ -140,7 +140,7 @@ class ScoreEventDispatcher:
         return cleared
 
     def close(self, timeout: float = 1.0) -> None:
-        """Stop the worker thread and release its resources."""
+        """останавливает рабочий поток и освобождает ресурсы"""
         thread: threading.Thread | None
         with self._worker_lock:
             thread = self._worker
@@ -202,6 +202,6 @@ class ScoreEventDispatcher:
                     try:
                         callback(item.index, tempo_ratio)
                     except Exception:
-                        logging.exception("ScoreEventDispatcher callback failed")
+                        logging.exception("коллбэк ScoreEventDispatcher завершился с ошибкой")
             finally:
                 self._queue.task_done()

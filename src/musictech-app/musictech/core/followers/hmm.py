@@ -26,39 +26,40 @@ __all__ = ["ScoreFollowerHMM"]
 
 
 class ScoreFollowerHMM:
-    """Realtime score-following with a duration-aware Forward update."""
+    """реалтайм-трекер партитуры с учётом длительности нот в forward-обновлении"""
 
     BASE_P_STAY = 0.3
     BASE_P_ADVANCE = 0.6
     BASE_P_SKIP = 0.1
 
     def __init__(self, score_json_path: str | Path, sigma: float = 2.0) -> None:
+        """конструктор: грузит score.json и инициализирует alpha"""
         if sigma <= 0:
-            raise ValueError("sigma must be positive")
+            raise ValueError("sigma должна быть положительной")
 
         score_path = Path(score_json_path)
         if score_path.suffix.lower() in {".mid", ".midi"}:
             raise ValueError(
-                "ScoreFollowerHMM expects a score JSON file, not a MIDI file. "
-                "Convert the MIDI with `midi_to_score.py` and pass the resulting `.json`."
+                "ScoreFollowerHMM ожидает score.json, а не midi-файл. "
+                "сконвертируй midi через `midi_to_score.py` и передай .json"
             )
 
         try:
             score_data = json.loads(score_path.read_text(encoding="utf-8"))
         except UnicodeDecodeError as exc:
             raise ValueError(
-                f"Could not read score file as UTF-8 JSON: {score_path}. "
-                "Pass a `.json` score file generated for the HMM."
+                f"не удалось прочитать score как utf-8 json: {score_path}. "
+                "передай .json в формате партитуры проекта"
             ) from exc
         except json.JSONDecodeError as exc:
             raise ValueError(
-                f"Invalid score JSON: {score_path}. "
-                "Expected the project score format with a top-level `notes` list."
+                f"невалидный score json: {score_path}. "
+                "ожидается объект с полем `notes` верхнего уровня"
             ) from exc
         notes = score_data.get("notes")
 
         if not isinstance(notes, list) or not notes:
-            raise ValueError("score JSON must contain a non-empty 'notes' list")
+            raise ValueError("score json должен содержать непустой список `notes`")
 
         self.score_path = score_path
         self.score_data = score_data
@@ -94,7 +95,7 @@ class ScoreFollowerHMM:
         self._tiny = np.finfo(np.float64).tiny
 
     def process_event(self, event: dict) -> int:
-        """Update the state distribution from one realtime MIDI note event."""
+        """обрабатывает одно midi-событие в реальном времени и возвращает индекс state"""
         pitch = float(event["pitch"])
         timestamp = float(event["timestamp"])
 
@@ -141,6 +142,7 @@ class ScoreFollowerHMM:
         return predicted_index
 
     def _emission_probabilities(self, observed_pitch: float) -> np.ndarray:
+        """считает b_i(o) - гауссова эмиссия для всех state одновременно"""
         deltas = (observed_pitch - self.pitches) / self.sigma
         emission = self._gaussian_norm * np.exp(-0.5 * np.square(deltas))
         return np.maximum(emission, self._tiny)
@@ -150,6 +152,7 @@ class ScoreFollowerHMM:
         elapsed_time: float,
         expected_duration: float,
     ) -> tuple[float, float, float]:
+        """веса (stay, advance, skip) от соотношения elapsed / nominal_duration"""
         if elapsed_time > 1.5 * expected_duration:
             advance_probability = 0.95
         elif elapsed_time >= expected_duration:
@@ -170,6 +173,7 @@ class ScoreFollowerHMM:
         alpha: np.ndarray,
         transition_probabilities: tuple[float, float, float],
     ) -> np.ndarray:
+        """применяет 3-диагональную матрицу переходов к текущему alpha"""
         stay_probability, advance_probability, skip_probability = transition_probabilities
         prior = alpha * stay_probability
 
@@ -186,11 +190,13 @@ class ScoreFollowerHMM:
         return prior
 
 
-# Kept as a module-level helper so legacy CLI calls (and the original
-# ``__main__`` block of ``hmm_follower.py``) keep working after the
-# package relocation. ``compat_zip`` is imported lazily because it
-# only matters for diagnostic loops.
 def _demo(score_path: Path, midi_path: Path) -> None:  # pragma: no cover
+    """диагностический прогон трекера: печатает таблицу с предсказаниями
+
+    оставлен на уровне модуля чтобы старый блок `__main__` в hmm_follower.py
+    продолжал работать после переезда пакета. `compat_zip` импортируется
+    лениво - он нужен только для диагностического цикла
+    """
     from ...cli.dataset_viewer import load_performance
 
     follower = ScoreFollowerHMM(score_path)
@@ -201,10 +207,10 @@ def _demo(score_path: Path, midi_path: Path) -> None:  # pragma: no cover
     for event, predicted_index in compat_zip(performance, predictions, strict=True):
         score_pitch = int(follower.pitches[predicted_index])
         print(
-            f"t={event['timestamp']:.3f}s pitch={int(event['pitch']):>3} "
+            f"t={event['timestamp']:.3f}с pitch={int(event['pitch']):>3} "
             f"-> state={predicted_index:>2} score_pitch={score_pitch:>3}"
         )
 
     if predictions != expected:
-        raise SystemExit("HMM demo failed to track the ideal score correctly.")
-    print("HMM demo tracked the ideal score from start to finish.")
+        raise SystemExit("hmm-демо не сумел отследить ideal-сценарий")
+    print("hmm-демо успешно прошёл ideal-сценарий от начала до конца")

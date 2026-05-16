@@ -30,14 +30,14 @@ def load_score(
     if isinstance(score_json, (str, Path)):
         score_path = Path(score_json)
         if score_path.suffix.lower() in {".mid", ".midi"}:
-            raise ValueError("Expected a score JSON file, not a MIDI file.")
+            raise ValueError("ожидается score.json, а не midi-файл")
 
         try:
             payload = json.loads(score_path.read_text(encoding="utf-8"))
         except UnicodeDecodeError as exc:
-            raise ValueError(f"Could not decode score JSON: {score_path}") from exc
+            raise ValueError(f"не удалось распарсить score.json: {score_path}") from exc
         except json.JSONDecodeError as exc:
-            raise ValueError(f"Invalid score JSON: {score_path}") from exc
+            raise ValueError(f"невалидный score.json: {score_path}") from exc
     else:
         payload = score_json
 
@@ -48,18 +48,18 @@ def load_score(
         notes = payload.get("notes")
         score_data = payload
     else:
-        raise TypeError("score_json must be a path, a score dict, or a list of notes")
+        raise TypeError("score_json должен быть путём, объектом score или списком нот")
 
     if not isinstance(notes, list) or not notes:
-        raise ValueError("score_json must contain a non-empty top-level list of notes")
+        raise ValueError("score_json должен содержать непустой список нот верхнего уровня")
 
     for position, note in enumerate(notes):
         if not isinstance(note, dict):
-            raise ValueError(f"score note #{position} must be a JSON object")
+            raise ValueError(f"score note #{position} должна быть json-объектом")
         if "pitch" not in note and "pitches" not in note:
-            raise ValueError(f"score note #{position} is missing 'pitch'/'pitches'")
+            raise ValueError(f"score note #{position} не имеет поля `pitch`/`pitches`")
         if "nominal_duration" not in note:
-            raise ValueError(f"score note #{position} is missing 'nominal_duration'")
+            raise ValueError(f"score note #{position} не имеет поля `nominal_duration`")
 
     return score_data, notes
 
@@ -70,11 +70,11 @@ def note_pitches(note: dict[str, Any]) -> list[int]:
     if raw_pitches is None:
         raw_pitch = note.get("pitch")
         if raw_pitch is None:
-            raise ValueError("score note is missing 'pitch'/'pitches'")
+            raise ValueError("у ноты партитуры отсутствует поле `pitch` или `pitches`")
         return [int(raw_pitch)]
 
     if not isinstance(raw_pitches, list) or not raw_pitches:
-        raise ValueError("score note 'pitches' must be a non-empty list")
+        raise ValueError("поле `pitches` ноты должно быть непустым списком")
     return [int(pitch) for pitch in raw_pitches]
 
 

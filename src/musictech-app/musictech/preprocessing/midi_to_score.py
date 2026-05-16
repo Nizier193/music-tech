@@ -42,14 +42,14 @@ class NoteEvent:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Convert a MIDI file into the project's score JSON format.",
+        description="конвертирует midi-файл в score.json формата проекта",
     )
-    parser.add_argument("midi_file", type=Path, help="Input MIDI file.")
+    parser.add_argument("midi_file", type=Path, help="входной midi-файл")
     parser.add_argument(
         "output_json",
         nargs="?",
         type=Path,
-        help="Optional output JSON path. Defaults to the MIDI stem with .json.",
+        help="опциональный путь к json. по умолчанию рядом с midi с расширением .json",
     )
     parser.add_argument(
         "--chord-policy",
@@ -64,19 +64,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--chord-epsilon",
         type=float,
         default=0.03,
-        help="Seconds within which note_on events are treated as the same onset group.",
+        help="сколько секунд считаем note_on в одну группу onset",
     )
     parser.add_argument(
         "--default-duration",
         type=float,
         default=0.5,
-        help="Fallback duration in seconds when a note-off is unavailable.",
+        help="запасная длительность когда note_off отсутствует",
     )
     parser.add_argument(
         "--min-duration",
         type=float,
         default=0.05,
-        help="Minimum duration assigned to any emitted score note.",
+        help="минимальная длительность эмитированной ноты партитуры",
     )
     return parser
 

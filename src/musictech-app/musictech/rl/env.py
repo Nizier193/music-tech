@@ -141,7 +141,7 @@ class ScoreFollowingEnv(_GymBase):
         config: EnvConfig | None = None,
     ) -> None:
         if score_length <= 0:
-            raise ValueError("score_length must be positive")
+            raise ValueError("score_length должен быть положительным")
 
         self.score_length = score_length
         self._follower_step = follower_step

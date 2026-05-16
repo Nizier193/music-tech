@@ -19,7 +19,7 @@ __all__ = ["MockOrchestraPlayer"]
 
 
 class MockOrchestraPlayer:
-    """Console-only playback stub for dispatcher integration tests."""
+    """заглушка плеера для интеграционных тестов dispatcher (только лог в консоль)"""
 
     def __init__(
         self,
@@ -29,7 +29,7 @@ class MockOrchestraPlayer:
         logger: logging.Logger | None = None,
     ) -> None:
         if tempo_change_threshold < 0.0:
-            raise ValueError("tempo_change_threshold must be non-negative")
+            raise ValueError("tempo_change_threshold должен быть неотрицательным")
 
         self.dispatcher = dispatcher
         self.tempo_change_threshold = float(tempo_change_threshold)
@@ -44,11 +44,11 @@ class MockOrchestraPlayer:
 
     def handle_dispatch(self, index: int, tempo_ratio: float) -> None:
         if self._last_logged_index != index:
-            self.logger.info("Orchestra jumping to measure/index %d", index)
+            self.logger.info("оркестр прыгает на индекс %d", index)
             self._last_logged_index = int(index)
 
         if self._should_log_tempo(tempo_ratio):
-            self.logger.info("Orchestra adjusting playback speed to %.2fx", tempo_ratio)
+            self.logger.info("оркестр меняет скорость воспроизведения на %.2fx", tempo_ratio)
             self._last_logged_tempo = float(tempo_ratio)
 
     def _should_log_tempo(self, tempo_ratio: float) -> bool:

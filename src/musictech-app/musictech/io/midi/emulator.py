@@ -19,7 +19,7 @@ __all__ = ["MidiEmulator"]
 
 
 class MidiEmulator:
-    """Replay note events from a MIDI file on a background thread."""
+    """проигрывает midi-файл в реальном времени в фоновом потоке"""
 
     def __init__(
         self,
@@ -43,7 +43,7 @@ class MidiEmulator:
             self.start()
 
     def start(self) -> None:
-        """Start replaying the MIDI file in real time."""
+        """запускает проигрывание midi-файла в реальном времени"""
         midi_lib = _require_mido()
 
         with self._lock:
@@ -60,7 +60,7 @@ class MidiEmulator:
             self._thread.start()
 
     def close(self, timeout: float = 1.0) -> None:
-        """Stop playback without blocking longer than timeout."""
+        """останавливает проигрывание не блокируясь дольше timeout"""
         thread: threading.Thread | None = None
 
         with self._lock:
@@ -75,7 +75,7 @@ class MidiEmulator:
                 self._thread = None
 
     def get_events(self) -> list[MidiEvent]:
-        """Return all currently buffered events without blocking."""
+        """возвращает все буферизованные события без блокировки"""
         return _drain_queue(self._events)
 
     @property
