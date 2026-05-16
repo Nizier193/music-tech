@@ -96,6 +96,24 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   </section>
 
   <script is:inline>
+    // если уже залогинены - сразу в кабинет
+    (function () {
+      const t = localStorage.getItem("musictech.token");
+      if (!t) return;
+      fetch("/api/auth/me", {
+        headers: { authorization: "Bearer " + t },
+        credentials: "include",
+      })
+        .then((r) => r.json())
+        .then((b) => {
+          if (b?.ok && b?.user) {
+            const baseUrl = location.pathname.replace(/\/login\/?$/, "");
+            location.href = `${baseUrl}/account`;
+          }
+        })
+        .catch(() => {});
+    })();
+
     const form     = document.getElementById("login-form");
     const errorBox = document.getElementById("login-error");
 
@@ -129,7 +147,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         if (body.name) localStorage.setItem("musictech.name", body.name);
 
         const baseUrl = location.pathname.replace(/\/login\/?$/, "");
-        window.location.href = `${baseUrl}/download?ok=1`;
+        window.location.href = `${baseUrl}/account`;
       } catch (err) {
         errorBox.textContent = err.message;
         errorBox.classList.remove("hidden");

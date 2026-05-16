@@ -50,6 +50,9 @@ const nav = [
       <a href={`${base}/login`} data-auth="anon" class="btn-ghost hidden sm:inline-flex">Войти</a>
       <a href={`${base}/account`} data-auth="user" class="btn-ghost hidden sm:inline-flex">Кабинет</a>
       <a href={`${base}/admin`} data-auth="admin" class="btn-ghost hidden sm:inline-flex !text-red-700">Админ</a>
+      <button type="button" data-auth="user" data-logout="1" class="btn-ghost hidden sm:inline-flex">
+        Выйти
+      </button>
       <a href="#download" data-anchor="1" class="btn-primary hidden sm:inline-flex">
         Скачать
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -101,6 +104,9 @@ const nav = [
       <a href={`${base}/register`} data-auth="anon"  class="mobile-link block px-3 py-3 rounded-lg text-base font-medium text-ink-800 hover:bg-ink-50">Регистрация</a>
       <a href={`${base}/account`}  data-auth="user"  class="mobile-link block px-3 py-3 rounded-lg text-base font-medium text-ink-800 hover:bg-ink-50">Личный кабинет</a>
       <a href={`${base}/admin`}    data-auth="admin" class="mobile-link block px-3 py-3 rounded-lg text-base font-medium text-red-700 hover:bg-red-50">Админка</a>
+      <button type="button" data-auth="user" data-logout="1" class="mobile-link block w-full text-left px-3 py-3 rounded-lg text-base font-medium text-ink-800 hover:bg-ink-50">
+        Выйти
+      </button>
       <a href="#download" data-anchor="1" class="btn-primary mt-2 mobile-link">Скачать MusicTech</a>
     </div>
   </nav>
@@ -149,53 +155,78 @@ const nav = [
   })();
 
   // ───────────── показываем нужные кнопки auth-состояния ─────────────
-  // anon  - есть всегда у незалогиненных
-  // user  - залогиненный пользователь
-  // admin - админ (видит кнопку "Админ")
+  // правила:
+  //   anon   - незалогиненный (виден только если нет токена)
+  //   user   - залогиненный (любой пользователь)
+  //   admin  - админ-кнопка появляется ТОЛЬКО после того как сервер
+  //            подтвердил роль admin через /api/auth/me. это защита от
+  //            подделки роли через localStorage.
   (function () {
-    function applyAuth() {
-      const token = localStorage.getItem("musictech.token");
-      const role  = localStorage.getItem("musictech.role") || "user";
-
-      const showFor = token ? (role === "admin" ? ["user", "admin"] : ["user"]) : ["anon"];
-
+    // быстрый первичный рендер на основе одного только наличия токена.
+    // НЕ читаем role - её ставит только сервер.
+    function applyAuthInitial() {
+      const hasToken = !!localStorage.getItem("musictech.token");
       document.querySelectorAll("[data-auth]").forEach((el) => {
         const want = el.getAttribute("data-auth");
-        if (!want) return;
-        const visible = showFor.includes(want);
-        // на десктопе используем sm:inline-flex - переключаем через hidden
-        if (visible) {
-          el.classList.remove("hidden");
-        } else {
-          el.classList.add("hidden");
-        }
+        if (want === "anon")  el.classList.toggle("hidden", hasToken);
+        if (want === "user")  el.classList.toggle("hidden", !hasToken);
+        if (want === "admin") el.classList.add("hidden"); // всегда скрыто до подтверждения
       });
     }
 
-    // первичный прогон
-    applyAuth();
-
-    // если токен есть - сверяемся с сервером (вдруг истёк), и заодно подгружаем роль
-    const token = localStorage.getItem("musictech.token");
-    if (token) {
-      fetch("/api/auth/me", {
-        headers: { authorization: "Bearer " + token },
-        credentials: "include",
-      })
-        .then((r) => r.json())
-        .then((b) => {
-          if (b?.ok && b?.user) {
-            localStorage.setItem("musictech.email", b.user.email);
-            localStorage.setItem("musictech.name",  b.user.name || "");
-            localStorage.setItem("musictech.role",  b.user.role || "user");
-          } else {
-            // токен невалиден - чистим
-            localStorage.removeItem("musictech.token");
-            localStorage.removeItem("musictech.role");
-          }
-          applyAuth();
-        })
-        .catch(() => {});
+    function applyAuthVerified(role) {
+      document.querySelectorAll('[data-auth="admin"]').forEach((el) => {
+        el.classList.toggle("hidden", role !== "admin");
+      });
     }
+
+    function logout() {
+      const token = localStorage.getItem("musictech.token") || "";
+      const headers = { "content-type": "application/json" };
+      if (token) headers.authorization = "Bearer " + token;
+      fetch("/api/auth/logout", { method: "POST", headers, credentials: "include" })
+        .finally(() => {
+          localStorage.removeItem("musictech.token");
+          localStorage.removeItem("musictech.email");
+          localStorage.removeItem("musictech.name");
+          localStorage.removeItem("musictech.role");
+          location.href = "/";
+        });
+    }
+
+    // первичный прогон до сетевого запроса
+    applyAuthInitial();
+
+    // вешаем logout на любую кнопку с data-logout
+    document.querySelectorAll("[data-logout='1']").forEach((el) => {
+      el.addEventListener("click", (e) => { e.preventDefault(); logout(); });
+    });
+
+    // если токена нет - сервер не дёргаем, оставляем гостевую раскладку
+    const token = localStorage.getItem("musictech.token");
+    if (!token) return;
+
+    fetch("/api/auth/me", {
+      headers: { authorization: "Bearer " + token },
+      credentials: "include",
+    })
+      .then((r) => r.json())
+      .then((b) => {
+        if (b?.ok && b?.user) {
+          // обновляем кэш и показываем admin-кнопку только если сервер подтвердил
+          localStorage.setItem("musictech.email", b.user.email);
+          localStorage.setItem("musictech.name",  b.user.name || "");
+          localStorage.setItem("musictech.role",  b.user.role || "user");
+          applyAuthVerified(b.user.role || "user");
+        } else {
+          // токен невалиден - чистим, переключаем на гостевую раскладку
+          localStorage.removeItem("musictech.token");
+          localStorage.removeItem("musictech.role");
+          applyAuthInitial();
+        }
+      })
+      .catch(() => {
+        // сетевые ошибки игнорируем, остаёмся в user-режиме без admin
+      });
   })();
 </script>

@@ -131,7 +131,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         sessionStorage.removeItem("musictech.pending_name");
 
         const baseUrl = location.pathname.replace(/\/verify\/?$/, "");
-        window.location.href = `${baseUrl}/download?welcome=1`;
+        window.location.href = `${baseUrl}/account?welcome=1`;
       } catch (err) {
         error.textContent = err.message;
         error.classList.remove("hidden");

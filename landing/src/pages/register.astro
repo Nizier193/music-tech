@@ -91,6 +91,24 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   </section>
 
   <script is:inline>
+    // если уже залогинены - сразу в кабинет
+    (function () {
+      const t = localStorage.getItem("musictech.token");
+      if (!t) return;
+      fetch("/api/auth/me", {
+        headers: { authorization: "Bearer " + t },
+        credentials: "include",
+      })
+        .then((r) => r.json())
+        .then((b) => {
+          if (b?.ok && b?.user) {
+            const baseUrl = location.pathname.replace(/\/register\/?$/, "");
+            location.href = `${baseUrl}/account`;
+          }
+        })
+        .catch(() => {});
+    })();
+
     const form    = document.getElementById("reg-form");
     const error   = document.getElementById("reg-error");
     const submit  = document.getElementById("reg-submit");
