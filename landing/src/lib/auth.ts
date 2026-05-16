@@ -3,7 +3,7 @@
  *
  * единственное место где встречаются переменные окружения:
  *   RESEND_API_KEY            ключ resend.com для отправки писем
- *   RESEND_FROM_EMAIL         from-адрес (например no-reply@musictech.art)
+ *   RESEND_FROM_EMAIL         from-адрес (например noreply@musictech.tech)
  *   UPSTASH_REDIS_REST_URL    хранилище кодов и аккаунтов
  *   UPSTASH_REDIS_REST_TOKEN
  *   JWT_SECRET                любая длинная строка для подписи токенов
@@ -24,7 +24,7 @@ const env = {
   UPSTASH_REDIS_REST_URL:    getenv("UPSTASH_REDIS_REST_URL"),
   UPSTASH_REDIS_REST_TOKEN:  getenv("UPSTASH_REDIS_REST_TOKEN"),
   JWT_SECRET:                getenv("JWT_SECRET"),
-  APP_URL:                   getenv("APP_URL", "https://musictech.art"),
+  APP_URL:                   getenv("APP_URL", "https://musictech.tech"),
 };
 
 function getenv(key: string, fallback?: string): string {
@@ -93,7 +93,7 @@ export interface SessionPayload {
   exp:   number;
 }
 
-const ISSUER = "musictech.art";
+const ISSUER = "musictech.tech";
 const AUDIENCE = "musictech-app";
 
 function jwtKey(): Uint8Array {
@@ -155,7 +155,7 @@ export async function sendVerificationCode(
       hint:    "Введите этот код на странице подтверждения, чтобы завершить создание аккаунта.",
       code,
       footnote:
-        "Если вы не регистрировались на musictech.art — просто игнорируйте это письмо.",
+        "Если вы не регистрировались на musictech.tech — просто игнорируйте это письмо.",
     }),
   });
 }

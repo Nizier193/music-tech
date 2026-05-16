@@ -6,7 +6,7 @@ import vercel from "@astrojs/vercel";
 // деплоимся на Vercel: статика собирается в .vercel/output/static,
 // API-эндпоинты упаковываются как serverless functions
 export default defineConfig({
-  site: process.env.APP_URL || "https://musictech.art",
+  site: process.env.APP_URL || "https://musictech.tech",
   base: "/",
 
   output: "server",
